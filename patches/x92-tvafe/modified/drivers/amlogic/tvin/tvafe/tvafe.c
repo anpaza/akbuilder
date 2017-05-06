@@ -108,7 +108,9 @@ static unsigned int tvafe_ratio_cnt = 50;
 module_param(tvafe_ratio_cnt, uint, 0644);
 MODULE_PARM_DESC(tvafe_ratio_cnt, "tvafe aspect ratio valid cnt");
 
+#ifdef CONFIG_AM_DVB
 static struct tvafe_info_s *g_tvafe_info;
+#endif
 
 /***********the  version of changing log************************/
 static const char last_version_s[] = "2013-11-29||11-28";

@@ -3,9 +3,19 @@ the TVIN driver. X92 does not have TVIN, so enabling this kernel option would be
 a waste of resources.
 
 diff -ur original/drivers/amlogic/tvin/tvafe/tvafe.c modified/drivers/amlogic/tvin/tvafe/tvafe.c
---- original/drivers/amlogic/tvin/tvafe/tvafe.c	2017-05-06 16:26:42.096214393 +0300
-+++ modified/drivers/amlogic/tvin/tvafe/tvafe.c	2017-05-06 16:26:00.000000000 +0300
-@@ -845,6 +845,7 @@
+--- original/drivers/amlogic/tvin/tvafe/tvafe.c	2017-05-06 16:52:34.847945458 +0300
++++ modified/drivers/amlogic/tvin/tvafe/tvafe.c	2017-05-06 17:08:04.551028106 +0300
+@@ -108,7 +108,9 @@
+ module_param(tvafe_ratio_cnt, uint, 0644);
+ MODULE_PARM_DESC(tvafe_ratio_cnt, "tvafe aspect ratio valid cnt");
+ 
++#ifdef CONFIG_AM_DVB
+ static struct tvafe_info_s *g_tvafe_info;
++#endif
+ 
+ /***********the  version of changing log************************/
+ static const char last_version_s[] = "2013-11-29||11-28";
+@@ -845,6 +847,7 @@
  }
  #endif
  
@@ -13,7 +23,7 @@ diff -ur original/drivers/amlogic/tvin/tvafe/tvafe.c modified/drivers/amlogic/tv
  static int tvafe_get_v_fmt(void)
  {
  	int fmt = 0;
-@@ -855,6 +856,7 @@
+@@ -855,6 +858,7 @@
  	fmt = tvafe_cvd2_get_format(&g_tvafe_info->cvd2);
  	return fmt;
  }

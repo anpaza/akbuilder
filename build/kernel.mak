@@ -76,4 +76,6 @@ $(KERNEL.OUT).stamp.modules: $(KERNEL.OUT).stamp.config
 ifdef KERNEL.DTS
 $(KERNEL.DTB): $(KERNEL.DTS.DIR)$(KERNEL.DTS)
 	$(KERNEL.MAKE) $(subst $(KERNEL.DTS.DIR),,$@)
+
+$(KERNEL.DTS.DIR)$(KERNEL.DTS): $(KERNEL.OUT).stamp.config
 endif

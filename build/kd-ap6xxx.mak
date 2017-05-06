@@ -15,7 +15,7 @@ KD_AP6XXX.FILE = $(KD_AP6XXX.OUT)dhd.ko
 
 kd-ap6xxx: $(KD_AP6XXX.FILE)
 
-$(KD_AP6XXX.FILE): $(KD_AP6XXX.OUT).stamp.copy $(KERNEL.OUT).stamp.config
+$(KD_AP6XXX.FILE): $(KD_AP6XXX.OUT).stamp.copy $(KERNEL.FILE)
 	$(MAKE) modules -C $(KERNEL.OUT) M=$(call CFN,$(KD_AP6XXX.OUT)) \
 	ARCH=$(KERNEL.ARCH) CROSS_COMPILE=$(KERNEL_GCC_PREFIX) \
 	KCPPFLAGS='-DCONFIG_BCMDHD_FW_PATH=\"/etc/wifi/fw_bcmdhd.bin\" -DCONFIG_BCMDHD_NVRAM_PATH=\"/etc/wifi/nvram.txt\"'
