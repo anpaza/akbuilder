@@ -1,0 +1,24 @@
+This patch integrates the out-of-kernel-tree VFD driver. Besides applying this
+patch you will need to copy the vfd subdirectory from linux_vfd project to
+drivers/amlogic/input/vfd/.
+
+diff -urw ../../../buildroot-openlinux-20170310/kernel/aml-3.14/drivers/amlogic/input/Kconfig aml-3.14-zap-1/drivers/amlogic/input/Kconfig
+--- ../../../buildroot-openlinux-20170310/kernel/aml-3.14/drivers/amlogic/input/Kconfig	2017-03-25 06:28:20.000000000 +0300
++++ aml-3.14-zap-1/drivers/amlogic/input/Kconfig	2017-03-30 00:51:28.491901167 +0300
+@@ -16,6 +16,7 @@
+ source "drivers/amlogic/input/gpio_key/Kconfig"
+ source "drivers/amlogic/input/sensor/Kconfig"
+ source "drivers/amlogic/input/avin_detect/Kconfig"
++source "drivers/amlogic/input/vfd/Kconfig"
+ 
+ endif
+ 
+diff -urw ../../../buildroot-openlinux-20170310/kernel/aml-3.14/drivers/amlogic/input/Makefile aml-3.14-zap-1/drivers/amlogic/input/Makefile
+--- ../../../buildroot-openlinux-20170310/kernel/aml-3.14/drivers/amlogic/input/Makefile	2017-03-25 06:28:20.000000000 +0300
++++ aml-3.14-zap-1/drivers/amlogic/input/Makefile	2017-03-30 00:51:44.179968266 +0300
+@@ -10,4 +10,4 @@
+ obj-$(CONFIG_AM_INPUT) += gpio_key/
+ obj-$(CONFIG_AM_INPUT) += sensor/
+ obj-$(CONFIG_AM_INPUT) += avin_detect/
+-
++obj-$(CONFIG_AM_INPUT) += vfd/

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+PATCH=../../build/X92/kernel/x92-dts.patch
+
+cat > $PATCH << EOF
+This patch adds the descriptor for the 7-segment LED display of X92.
+Also it adds a section for the old remote control driver from
+Beijing-platform. There is already a remote control section in
+mesongxm.dti (which is included from gxm_q201*.dts), but that one
+is for the new driver (which must be disabled in kernel config).
+
+EOF
+
+diff -u gxm_q201_2g.dts.orig gxm_q201_2g.dts >> $PATCH

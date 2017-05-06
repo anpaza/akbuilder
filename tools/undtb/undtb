@@ -1,0 +1,139 @@
+#!/usr/bin/python
+#
+# This program will extract DTB (flattened device trees) files from a IMG file
+# created with dtbTool (AMLogic Android-specific container for several DTB files).
+
+import sys
+import os.path
+import struct
+from optparse import OptionParser
+
+class Empty:
+    pass
+
+# -* DTB image format *-
+# (modified from version 3 here: https://github.com/xiaolu/mkbootimg_tools/blob/master/dtbtool.txt)
+#
+#           Field contents        size
+#   x      +------------------+
+#   |      | MAGIC ("AML_")   |   4 characters
+#   |      +------------------+
+# header   | VERSION          |   uint32 (version 2, little-endian)
+#   |      +------------------+
+#   |      | num of DTBs      |   uint32 (number of DTB entries, little-endian)
+#   x      +------------------+
+#   |      | platform id #1   |   uint32 ("gxm ", little-endian)
+#   |      +------------------+
+#   |      | padding          |   12 characters(spaces)
+#   |      +------------------+
+#   |      | variant id #1    |   uint32 ("q201", little-endian)
+#   |      +------------------+
+#   |      | padding          |   12 characters(spaces)
+#   |      +------------------+
+#   |      | subtype id #1    |   uint32 ("2g  ", little-endian)
+#   |      +------------------+
+#   |      | padding          |   12 characters(spaces)
+#   |      +------------------+
+#   |      | offset #1        |   uint32 (byte offset from start/before MAGIC
+#   |      +------------------+           to DTB entry)
+#   |      | size #1          |   uint32 (size in bytes of DTB blob)
+#   x      +------------------+
+#   .              .
+#   .              .  (repeat)
+#   .              .
+#   x      +------------------+           to DTB entry)
+#          | 0 ("zero")       |   uint32 (end of list delimiter)
+#          +------------------+
+#          | padding          |   variable length for next DTB to start on
+#          +------------------+           page boundary (2048 bytes)
+#          | DTB #1           |   variable (start is page aligned)
+#          |                  |
+#          |                  |
+#          +------------------+
+#          | padding          |   variable length for next DTB to start on
+#          +------------------+           page boundary
+#                  .
+#                  .
+#                  .
+#
+#          +------------------+
+#          | DTB #Z (last)    |   variable (start is page aligned)
+#          |                  |
+#          |                  |
+#          +------------------+
+
+dtb_img_header_struct = "<4cII"
+dtb_img_header_len = struct.calcsize (dtb_img_header_struct)
+dtb_img_entry_struct = "<I12xI12xI12xII"
+dtb_img_entry_len = struct.calcsize (dtb_img_entry_struct)
+
+def load_dtb (fn):
+    f = file (fn, "r")
+    hdr = f.read (dtb_img_header_len)
+    if len (hdr) != dtb_img_header_len:
+        raise Exception ("file is too short")
+
+    hdr = struct.unpack (dtb_img_header_struct, hdr)
+    dtb = Empty ()
+    setattr (dtb, "magic", "%c%c%c%c" % (hdr [0], hdr [1], hdr [2], hdr [3]))
+    setattr (dtb, "version", hdr [4])
+    setattr (dtb, "entry", list ())
+    ecount = hdr [5]
+
+    if dtb.magic != "AML_":
+        raise Exception ("unknown file magic '%s'" % dtb.magic)
+    if dtb.version != 2:
+        raise Exception ("unknown file version %d", dtb.version)
+    for i in range (ecount):
+        entry = f.read (dtb_img_entry_len)
+        if len (entry) != dtb_img_entry_len:
+            raise Exception ("incomplete entry description in header")
+        entry = struct.unpack (dtb_img_entry_struct, entry)
+        e = Empty ()
+        setattr (e, "platform", entry [0])
+        setattr (e, "variant", entry [1])
+        setattr (e, "subtype", entry [2])
+        setattr (e, "offset", entry [3])
+        setattr (e, "size", entry [4])
+        dtb.entry.append (e)
+
+    # Read the DTB entries
+    for e in dtb.entry:
+        f.seek (e.offset)
+        data = f.read (e.size)
+        if len (data) != e.size:
+            raise Exception ("incomplete dtb entry in container")
+        setattr (e, "data", data)
+
+    f.close ()
+
+    return dtb
+
+def extract (fn, options):
+    dtb = load_dtb (fn)
+
+    for serial in range (len (dtb.entry)):
+        ofn = os.path.join (options.out_dir,
+            "%s-%d.dtb" % (os.path.splitext (os.path.basename (fn)) [0], serial))
+
+        e = dtb.entry [serial]
+
+        f = file (ofn, "w")
+        f.write (e.data)
+        f.close ()
+
+
+usage = "%prog [options] [file[ ...]]"
+version = "%prog 0.1.0"
+parser = OptionParser (usage=usage, version=version)
+parser.add_option ("-o", "--output", help="Set output directory",
+                   metavar="DIR", dest="out_dir", default = "")
+
+(options, args) = parser.parse_args ()
+
+if len (args) == 0:
+    print (parser.format_help ())
+    sys.exit (1)
+
+for fn in args:
+    extract (fn, options)

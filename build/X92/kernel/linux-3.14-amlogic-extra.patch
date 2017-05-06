@@ -1,0 +1,26 @@
+Additional patches to fix AMLogic kernel sources
+
+diff -ur ../../../../kernel/aml-3.14/kernel/power/Makefile linux-3.14.29-zap-1/kernel/power/Makefile
+--- ../../../../kernel/aml-3.14/kernel/power/Makefile	2017-03-06 15:05:42.000000000 +0300
++++ linux-3.14.29-zap-1/kernel/power/Makefile	2017-03-09 13:12:51.532179815 +0300
+@@ -9,7 +9,7 @@
+ obj-$(CONFIG_PM_TEST_SUSPEND)	+= suspend_test.o
+ obj-$(CONFIG_HIBERNATION)	+= hibernate.o snapshot.o
+ obj-$(CONFIG_PM_AUTOSLEEP)	+= autosleep.o
+-#obj-$(CONFIG_PM_WAKELOCKS)	+= wakelock.o
++obj-$(CONFIG_PM_WAKELOCKS)	+= wakelock.o
+ obj-$(CONFIG_WAKELOCK)		+= wakelock_android.o
+ obj-$(CONFIG_USER_WAKELOCK)	+= userwakelock.o
+ obj-$(CONFIG_EARLYSUSPEND)	+= earlysuspend.o
+diff -ur ../../../../kernel/aml-3.14/include/linux/dma-contiguous.h linux-3.14.29-zap-1/include/linux/dma-contiguous.h
+--- ../../../../kernel/aml-3.14/include/linux/dma-contiguous.h	2017-03-06 15:05:42.000000000 +0300
++++ linux-3.14.29-zap-1/include/linux/dma-contiguous.h	2017-03-09 13:14:46.329834667 +0300
+@@ -144,7 +144,7 @@
+ 	return -ENOSYS;
+ }
+ 
+-unsigned long dma_get_cma_size_int_byte(struct device *dev) {return 0};
++unsigned long dma_get_cma_size_int_byte(struct device *dev) {return 0;}
+ static inline
+ struct page *dma_alloc_from_contiguous(struct device *dev, int count,
+ 				       unsigned int order)

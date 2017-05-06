@@ -1,0 +1,23 @@
+This patch removes a warning that prevents kernel from compiling if you disable
+the TVIN driver. X92 does not have TVIN, so enabling this kernel option would be
+a waste of resources.
+
+diff -ur original/drivers/amlogic/tvin/tvafe/tvafe.c modified/drivers/amlogic/tvin/tvafe/tvafe.c
+--- original/drivers/amlogic/tvin/tvafe/tvafe.c	2017-05-06 16:26:42.096214393 +0300
++++ modified/drivers/amlogic/tvin/tvafe/tvafe.c	2017-05-06 16:26:00.000000000 +0300
+@@ -845,6 +845,7 @@
+ }
+ #endif
+ 
++#ifdef CONFIG_AM_DVB
+ static int tvafe_get_v_fmt(void)
+ {
+ 	int fmt = 0;
+@@ -855,6 +856,7 @@
+ 	fmt = tvafe_cvd2_get_format(&g_tvafe_info->cvd2);
+ 	return fmt;
+ }
++#endif
+ 
+ /*
+  * tvafe open port and init register

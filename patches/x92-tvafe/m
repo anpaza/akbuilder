@@ -1,0 +1,12 @@
+#!/bin/sh
+
+PATCH=../../build/X92/kernel/linux-3.14-x92-tvafe.patch
+
+cat > $PATCH << EOF
+This patch removes a warning that prevents kernel from compiling if you disable
+the TVIN driver. X92 does not have TVIN, so enabling this kernel option would be
+a waste of resources.
+
+EOF
+
+diff -ur original modified >> $PATCH

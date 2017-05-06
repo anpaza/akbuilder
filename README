@@ -1,0 +1,75 @@
+WHAT IS IT
+----------
+This set of scripts is meant to make it easier to rebuild the kernel
+for some Android TV boxes.
+
+
+SETTING UP
+----------
+To compile the kernel, you will need the following:
+
+For S905/S912 CPUs you need a fresh snapshot of AMLogic's "OpenLinux"
+GIT repository (http://openlinux.amlogic.com). The latest snapshot
+as of today can be found here:
+
+    http://openlinux.amlogic.com:8000/download/ARM/filesystem/buildroot-openlinux-20170310.tar.gz
+
+Unpack it in same directory where akbuilder resides (you can override it
+by specifying AMLOGIC_BUILDROOT_DIR= on make command line).
+
+For X92 box only you will need a copy of the linux_vfd project, which
+contains the LCD display driver and controlling daemon for X92, from here:
+
+    https://github.com/anpaza/linux_vfd
+
+Place "linux_vfd" directory in same directory where akbuilder resides
+(you can override it by specifying LINUX_VFD_DIR= on make command line).
+
+To start building, just run:
+
+    make PLATFORM=... bootimg
+
+(where PLATFORM is one of the subdirectories under platforms/).
+By default it will build for X92 platform.
+
+If everything goes well, it will build a replacement boot.img for your
+platform. Otherwise it will display a message telling what's wrong;
+fix the problem and try again.
+
+The final rebuilt boot.img will be placed under out/$(PLATFORM)/.
+Note that you CANNOT use it as a replacement for the 'boot' partition
+on your device due to a bug in u-Boot startup scripts. This bug will
+cause the kernel from boot partition to be launched with an OLD DTB file
+used for u-Boot itself (DTB describes the current platform).
+The new kernel will simply crash with an old DTB.
+
+Instead, you need to copy the boot.img and the DTB file to a USB stick
+(or SD card). Also you have to place a u-Boot script named
+aml_autoscript (on S912 devices) or s905_autoscript (on S905 devices)
+which is automatically launched by u-Boot at startup, if you press
+the 'undocumented' button inside the AV jack. To build the autoscript
+you need the u-Boot mkimage tool installed (it is available for most
+Linux distributions, the package is named somehow like uboot-tools).
+
+For simplicity, there's an 'bootfiles' target which will prepare everything
+for you in directory out/$(PLATFORM)/. Just copy all the files that
+'make bootfiles' places there to a USB stick and boot.
+
+Command line examples:
+
+- Build boot.img files for the 2Gb and 3Gb X92 variants:
+
+	make bootimg PLATFORM=X92 BOOTIMG.FILE=boot-2G.img KERNEL.DTS=gxm_x92_2g.dts
+	make bootimg PLATFORM=X92 BOOTIMG.FILE=boot-3G.img KERNEL.DTS=gxm_x92_3g.dts
+
+- Try the 4.19 kernel (does not work yet :-P)
+
+	make bootfiles PLATFORM=X92 PLATFORM_KERNEL_VER=3.14
+
+
+CREDITS
+-------
+
+This package contains a copy of carliv_mkbootimg_tools, the original can be found here:
+
+    https://github.com/carliv/carliv_mkbootimg_tools
