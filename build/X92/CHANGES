@@ -1,0 +1,14 @@
+The difference between the modified and the stock X92 kernel:
+
+  * Modified kernel is based on the AMLogic kernel source released on 2017 10-Mar.
+    Stock kernel is based on an older AMLogic kernel source (Oct-2016 or so).
+
+  * The LED display driver (named 'vfd') has been rewritten from scratch,
+    since the AMLogic sources do not contain it.
+    The driver in modified kernel is way more advanced.
+    To drive the LED display there's a daemon running now in background named vfdd.
+    It is placed in boot.img (on initramfs), so it will start automatically only
+    when you boot the modified kernel.
+
+    This driver and daemon is available separately from the GitHub:
+    https://github.com/anpaza/linux_vfd

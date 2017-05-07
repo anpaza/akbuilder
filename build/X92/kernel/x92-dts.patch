@@ -4,8 +4,17 @@ Beijing-platform. There is already a remote control section in
 mesongxm.dti (which is included from gxm_q201*.dts), but that one
 is for the new driver (which must be disabled in kernel config).
 
---- gxm_q201_2g.dts.orig	2017-03-25 06:28:19.000000000 +0300
-+++ gxm_q201_2g.dts	2017-05-05 13:51:19.829949843 +0300
+--- gxm_q201_2g.dts	2017-05-06 16:52:34.842945436 +0300
++++ gxm_x92_2g.dts	2017-05-07 11:43:16.395752282 +0300
+@@ -28,7 +28,7 @@
+ / {
+ 	model = "Amlogic";
+ 	compatible = "amlogic, Gxm";
+-	amlogic-dt-id = "gxm_q201_2g";
++	amlogic-dt-id = "gxm_x92_2g";
+ 	interrupt-parent = <&gic>;
+ 	#address-cells = <2>;
+ 	#size-cells = <2>;
 @@ -144,6 +144,38 @@
  		led_active_low = <1>;
  	};

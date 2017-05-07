@@ -28,7 +28,7 @@
 / {
 	model = "Amlogic";
 	compatible = "amlogic, Gxm";
-	amlogic-dt-id = "gxm_q201_2g";
+	amlogic-dt-id = "gxm_x92_2g";
 	interrupt-parent = <&gic>;
 	#address-cells = <2>;
 	#size-cells = <2>;
@@ -144,6 +144,38 @@
 		led_active_low = <1>;
 	};
 
+	meson-remote {
+		compatible = "amlogic, aml_remote";
+		dev_name = "meson-remote";
+		status = "okay";
+		remote_ao_offset = <0x580>;
+		interrupts = <0x0 0xc4 0x1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&remote_pins>;
+		/* [scan code] [linux key code] */
+		key_codes = /bits/ 16
+			    <0x02 KEY_POWER>,
+			    <0x07 KEY_VOLUMEDOWN>,
+			    <0x01 KEY_VOLUMEUP>,
+			    <0x05 KEY_MENU>,
+			    <0x04 KEY_CHANNELUP>,
+			    <0x06 KEY_CHANNELDOWN>,
+			    <0x00 KEY_ENTER>;
+	};
+
+	meson-vfd {
+		compatible = "amlogic,aml_vfd";
+		dev_name = "meson-vfd";
+		status = "okay";
+		gpios = <&gpio GPIODV_17 GPIO_ACTIVE_HIGH>,  /* STB */
+			<&gpio GPIODV_16 GPIO_ACTIVE_HIGH>,  /* CLK */
+			<&gpio GPIODV_15 GPIO_ACTIVE_HIGH>;  /* DI/DO */
+		/* dot LED names */
+		dot_names = "APPS", "SETUP", "USB", "CARD", ":", "HDMI", "CVBS";
+		/* dot LED <16_bit_word bit_number> in raw display buffer ('overlay') */
+		dot_bits = /bits/ 8 <0 3 1 3 2 3 3 3 4 3 5 3 6 3>;
+	};
+
 	meson-vout {
 		compatible = "amlogic, meson-vout";
 		dev_name = "meson-vout";
@@ -206,24 +238,27 @@
 			dev_name = "codec_mm";
 			status = "okay";
 	};
-			ethmac: ethernet@0xc9410000 {
-						compatible = "amlogic, gxbb-rmii-dwmac";
-						reg = <0x0 0xc9410000 0x0 0x10000
-						0x0 0xc8834540 0x0 0x8
-						0x0 0xc8834558 0x0 0xc>;
-						interrupts = <0 8 1>;
-						phy-mode= "rmii";
-						pinctrl-names = "internal_eth_pins";
-						pinctrl-0 = <&internal_eth_pins>;
-						mc_val = <0x1800>;
-						resets = <&clock GCLK_IDX_ETHERNET>;
-						reset-names = "ethpower";
-						interrupt-names = "macirq";
-						clocks = <&clock CLK_81>;
-						clock-names = "ethclk81";
-						internal_phy=<1>;
-						wol=<0>;
-    };
+	ethmac: ethernet@0xc9410000 {
+		compatible = "amlogic, gxbb-rgmii-dwmac";
+		reg = <0x0 0xc9410000 0x0 0x10000
+		0x0 0xc8834540 0x0 0x8
+		0x0 0xc8834558 0x0 0xc>;
+		interrupts = <0 8 1>;
+		phy-mode= "rgmii";
+		pinctrl-names = "external_eth_pins";
+		pinctrl-0 = <&external_eth_pins>;
+		rst_pin-gpios = <&gpio GPIOZ_14 0>;
+		GPIOZ4_pin-gpios = <&gpio GPIOZ_4 0>;
+		GPIOZ5_pin-gpios = <&gpio GPIOZ_5 0>;
+		mc_val = <0x1621>;
+		cali_val = <0x20000>;
+		resets = <&clock GCLK_IDX_ETHERNET>;
+		reset-names = "ethpower";
+		interrupt-names = "macirq";
+		clocks = <&clock CLK_81>;
+		clock-names = "ethclk81";
+		internal_phy=<0>;
+	};
 	mesonstream {
 		compatible = "amlogic, codec, streambuf";
 		dev_name = "mesonstream";
@@ -891,7 +926,7 @@
 		compatible = "synopsys, dwc3";
 		reg = <0x0 0xc9000000 0x0 0x100000>;
 		interrupts = <0 30 4>;
-		usb-phy = <&usb2_phy>, <&usb3_phy>;
+		usb-phy = <&usb2_phy>/*, <&usb3_phy>*/;
 		cpu-type = "gxl";
 		clock-src = "usb3.0";
 	};

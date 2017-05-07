@@ -59,12 +59,12 @@ Command line examples:
 
 - Build boot.img files for the 2Gb and 3Gb X92 variants:
 
-	make bootimg PLATFORM=X92 BOOTIMG.FILE=boot-2G.img KERNEL.DTS=gxm_x92_2g.dts
-	make bootimg PLATFORM=X92 BOOTIMG.FILE=boot-3G.img KERNEL.DTS=gxm_x92_3g.dts
+    make bootimg PLATFORM=X92 BOOTIMG.FILE=boot-2G.img KERNEL.DTS=gxm_x92_2g.dts
+    make bootimg PLATFORM=X92 BOOTIMG.FILE=boot-3G.img KERNEL.DTS=gxm_x92_3g.dts
 
 - Try the 4.19 kernel (does not work yet :-P)
 
-	make bootfiles PLATFORM=X92 PLATFORM_KERNEL_VER=3.14
+    make bootfiles PLATFORM=X92 PLATFORM_KERNEL_VER=3.14
 
 
 CREDITS

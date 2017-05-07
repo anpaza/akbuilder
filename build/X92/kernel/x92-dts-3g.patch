@@ -1,0 +1,23 @@
+This patch transforms the device tree for 2Gb RAM models into
+a device tree for models with 3Gb RAM.
+
+--- gxm_x92_2g.dts	2017-05-07 11:50:05.000000000 +0300
++++ gxm_x92_3g.dts	2017-05-07 11:55:12.641850613 +0300
+@@ -28,7 +28,7 @@
+ / {
+ 	model = "Amlogic";
+ 	compatible = "amlogic, Gxm";
+-	amlogic-dt-id = "gxm_x92_2g";
++	amlogic-dt-id = "gxm_x92_3g";
+ 	interrupt-parent = <&gic>;
+ 	#address-cells = <2>;
+ 	#size-cells = <2>;
+@@ -42,7 +42,7 @@
+ 	};
+ 	memory@00000000 {
+ 		device_type = "memory";
+-		linux,usable-memory = <0x0 0x0 0x0 0x80000000>;
++		linux,usable-memory = <0x0 0x0 0x0 0xc0000000>;
+ 	};
+ 
+ 	reserved-memory {

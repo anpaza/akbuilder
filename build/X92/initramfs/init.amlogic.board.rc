@@ -7,7 +7,7 @@ on early-init
 on init
 
 on post-fs-data
-    insmod /boot/modules-${ro.kernel.build}/mali.ko
+    insmod /lib/modules/${ro.kernel.build}/mali.ko
 
 on boot
     setprop ro.radio.noril true

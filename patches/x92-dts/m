@@ -11,4 +11,4 @@ is for the new driver (which must be disabled in kernel config).
 
 EOF
 
-diff -u gxm_q201_2g.dts.orig gxm_q201_2g.dts >> $PATCH
+diff -u gxm_q201_2g.dts gxm_x92_2g.dts >> $PATCH

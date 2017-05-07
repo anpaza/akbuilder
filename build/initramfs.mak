@@ -6,13 +6,13 @@ ifndef INITRAMFS.DIR
 $(error initramfs source directory not defined)
 endif
 
-INITRAMFS.OUT = $(OUT)$(notdir $(INITRAMFS.DIR))-$(PLATFORM_KERNEL_VER)$(KERNEL.SUFFIX)/
+INITRAMFS.OUT = $(OUT)$(notdir $(INITRAMFS.DIR))-$(KERNEL.RELEASE)/
 OUTDIRS += $(INITRAMFS.OUT)
 
 HELP += $(NL)initramfs - Build the initial RAM filesystem for $(PLATFORM)
 
-INITRAMFS.FILE = $(INITRAMFS.OUT)$(notdir $(INITRAMFS.DIR))-$(PLATFORM_KERNEL_VER)$(KERNEL.SUFFIX).gz
-INITRAMFS.MODDIR = $(INITRAMFS.OUT)tree/boot/modules-$(PLATFORM_KERNEL_VER)$(KERNEL.SUFFIX)/
+INITRAMFS.FILE = $(INITRAMFS.OUT)$(notdir $(INITRAMFS.DIR))-$(KERNEL.RELEASE).gz
+INITRAMFS.MODDIR = $(INITRAMFS.OUT)tree/lib/modules/$(KERNEL.RELEASE)/
 INITRAMFS.MODFILES = $(addprefix $(INITRAMFS.MODDIR),$(INITRAMFS.MODULES))
 
 initramfs: $(INITRAMFS.FILE)
@@ -21,10 +21,12 @@ $(INITRAMFS.FILE): $(INITRAMFS.OUT).stamp.copy $(INITRAMFS.MODFILES) $(INITRAMFS
 	cd $(INITRAMFS.OUT)tree && \
 	find . | cpio --quiet -o -H newc | gzip > $(call CFN,$(INITRAMFS.FILE))
 
+# git does not store empty dirs, so we have to create them manually
 $(INITRAMFS.OUT).stamp.copy: $(call DIRSTAMP,$(INITRAMFS.OUT)) $(wildcard $(INITRAMFS.DIR)/*)
 	$(call RMDIR,$(INITRAMFS.OUT)tree)
 	$(call RCP,$(INITRAMFS.DIR)/.,$(INITRAMFS.OUT)tree/)
-	sed -ie 's/^ro.kernel.build=.*/ro.kernel.build=$(PLATFORM_KERNEL_VER)$(KERNEL.SUFFIX)/' \
+	$(call MKDIR,$(addprefix $(INITRAMFS.OUT)tree/,boot data dev lib oem proc sys system))
+	sed -i -e 's/^ro.kernel.build=.*/ro.kernel.build=$(KERNEL.RELEASE)/' \
 		$(INITRAMFS.OUT)tree/default.prop
 	$(call TOUCH,$@)
 

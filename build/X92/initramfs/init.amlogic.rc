@@ -480,6 +480,12 @@ service hdcp_tx22 /system/bin/hdcp_tx22 \
     disabled
     oneshot
 
+service modules_install /modules.sh install
+    class main
+    user root
+    group root
+    oneshot
+
 service ddrtest /system/bin/ddrtest.sh
     class main
     user root
