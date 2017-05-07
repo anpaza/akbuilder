@@ -1,4 +1,6 @@
 #!/bin/sh
+# for convenience, make a link to this file in root project directory
+# (where GNUmakefile is located), or run directly as build/X92/deploy.
 
 OUT=out/X92/
 

@@ -38,7 +38,7 @@ on init
     confirm_formated_ext ext4 /dev/block/tee /tee 1024 1024
 
 on post-fs
-    start tee_supplicant
+    start modules_install
 
 on post-fs-data
     mkdir /data/misc/wifi 0770 wifi wifi
@@ -471,9 +471,6 @@ on property:instaboot.status=completed
 on property:dev.bootcomplete=1
     start usbpm
 
-on property:vold.post_fs_data_done=1
-    start tee_supplicant
-
 service hdcp_tx22 /system/bin/hdcp_tx22 \
     -f /system/etc/firmware/firmware.le
     class main
@@ -481,9 +478,7 @@ service hdcp_tx22 /system/bin/hdcp_tx22 \
     oneshot
 
 service modules_install /modules.sh install
-    class main
-    user root
-    group root
+    disabled
     oneshot
 
 service ddrtest /system/bin/ddrtest.sh

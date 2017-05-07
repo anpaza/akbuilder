@@ -138,3 +138,4 @@ pppoe                                       u:object_r:pppoe_service:s0
 tvservice                                   u:object_r:tvserver_service:s0
 media.screenmediasource                     u:object_r:screenmediasource_service:s0
 tee_supplicant                              u:object_r:tee_service:s0
+vfdd                                        u:object_r:vfdd_service:s0
