@@ -3,14 +3,14 @@ instead of the new one by AMLOGIC. The new driver does not work well
 on X92, also it does not support mouse mode.
 
 diff -ur original/drivers/amlogic/input/remote/Makefile modified/drivers/amlogic/input/remote/Makefile
---- original/drivers/amlogic/input/remote/Makefile	2017-03-25 06:28:20.000000000 +0300
-+++ modified/drivers/amlogic/input/remote/Makefile	2017-05-02 08:39:31.000000000 +0300
+--- original/drivers/amlogic/input/remote/Makefile	2017-05-27 00:47:36.000000000 +0300
++++ modified/drivers/amlogic/input/remote/Makefile	2017-05-27 00:48:36.000000000 +0300
 @@ -5,6 +5,6 @@
  # Each configuration option enables a list of files.
  
  obj-$(CONFIG_MESON_REMOTE)		+= remote.o
 -#remote-objs := remote_main.o remote_func.o
- 
--remote-objs := remote_core.o remote_meson.o sysfs.o remote_raw.o remote_decoder_xmp.o remote_regmap.o
 +remote-objs := remote_main.o remote_func.o
-+#remote-objs := remote_core.o remote_meson.o sysfs.o remote_raw.o remote_decoder_xmp.o remote_regmap.o
+ 
+-remote-objs := remote_core.o remote_meson.o sysfs.o remote_cdev.o remote_raw.o remote_decoder_xmp.o remote_regmap.o
++#remote-objs := remote_core.o remote_meson.o sysfs.o remote_cdev.o remote_raw.o remote_decoder_xmp.o remote_regmap.o

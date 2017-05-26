@@ -22,9 +22,8 @@
 #include <dt-bindings/gpio/gxl.h>
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/reset/aml_gxl.h>
-#include <dt-bindings/pwm/pwm.h>
-#include <dt-bindings/pwm/meson.h>
 #include "mesongxm.dtsi"
+#include "partition_mbox.dtsi"
 / {
 	model = "Amlogic";
 	compatible = "amlogic, Gxm";
@@ -42,7 +41,7 @@
 	};
 	memory@00000000 {
 		device_type = "memory";
-		linux,usable-memory = <0x0 0x0 0x0 0xc0000000>;
+		linux,usable-memory = <0x0 0x00100000 0x0 0xbff00000>;
 	};
 
 	reserved-memory {
@@ -80,6 +79,11 @@
 			//no-map;
 		};
 
+		chunk_reserved:linux,chunk-reserve {
+			compatible = "amlogic, chunk-reserve";
+			size = <0x0 0x4000000>;
+		};
+
 		ion_reserved:linux,ion-dev {
 			compatible = "amlogic, idev-mem";
 			size = <0x0 0x4000000>;
@@ -111,7 +115,7 @@
 		codec_mm_cma:linux,codec_mm_cma {
 			compatible = "shared-dma-pool";
 			reusable;
-			size = <0x0 0xc000000>;
+			size = <0x0 0x15000000>;
 			alignment = <0x0 0x400000>;
 			linux,contiguous-region;
 		};
@@ -174,6 +178,12 @@
 		dot_names = "APPS", "SETUP", "USB", "CARD", ":", "HDMI", "CVBS";
 		/* dot LED <16_bit_word bit_number> in raw display buffer ('overlay') */
 		dot_bits = /bits/ 8 <0 3 1 3 2 3 3 3 4 3 5 3 6 3>;
+	};
+
+	chunk-reserve {
+		compatible = "amlogic, chunk-reserve";
+		memory-region = <&chunk_reserved>;
+		status = "okay";
 	};
 
 	meson-vout {
@@ -610,80 +620,7 @@
 						status = "okay";
 					};
 	};*/
-	partitions: partitions{
-        parts = <11>;
-		part-0 = <&logo>;
-		part-1 = <&recovery>;
-		part-2 = <&rsv>;
-		part-3 = <&tee>;
-		part-4 = <&crypt>;
-		part-5 = <&misc>;
-		part-6 = <&instaboot>;
-		part-7 = <&boot>;
-		part-8 = <&system>;
-		part-9 = <&cache>;
-		part-10 = <&data>;
 
-		logo:logo{
-			pname = "logo";
-			size = <0x0 0x2000000>;
-			mask = <1>;
-		};
-		recovery:recovery{
-			pname = "recovery";
-			size = <0x0 0x2000000>;
-			mask = <1>;
-		};
-		rsv:rsv{
-			pname = "rsv";
-			size = <0x0 0x800000>;
-			mask = <1>;
-		};
-		tee:tee{
-			pname = "tee";
-			size = <0x0 0x800000>;
-			mask = <1>;
-		};
-		crypt:crypt{
-			pname = "crypt";
-			size = <0x0 0x2000000>;
-			mask = <1>;
-		};
-		misc:misc{
-			pname = "misc";
-			size = <0x0 0x2000000>;
-			mask = <1>;
-		};
-		instaboot:instaboot{
-			pname = "instaboot";
-			size = <0x0 0x400000>;
-			mask = <1>;
-		};
-		boot:boot
-		{
-			pname = "boot";
-			size = <0x0 0x2000000>;
-			mask = <1>;
-		};
-		system:system
-		{
-			pname = "system";
-			size = <0x0 0x80000000>;
-			mask = <1>;
-		};
-		cache:cache
-		{
-			pname = "cache";
-			size = <0x0 0x20000000>;
-			mask = <2>;
-		};
-		data:data
-		{
-			pname = "data";
-			size = <0xffffffff 0xffffffff>;
-			mask = <4>;
-		};
-	};
 	unifykey{
 		compatible = "amlogic, unifykey";
 		status = "ok";
@@ -783,6 +720,7 @@
 		dev_name = "amhdmitx";
 		status = "okay";
 		vend-data = <&vend_data>;
+		hdmi5v_pwr_ctrl = <&gpio GPIOH_3 GPIO_ACTIVE_LOW>;
 		pinctrl-names="hdmitx_hpd", "hdmitx_ddc";
 		pinctrl-0=<&hdmitx_hpd>;
 		pinctrl-1=<&hdmitx_ddc>;
@@ -1101,35 +1039,6 @@
 		};
 	};
 	/* END OF AUDIO board specific */
-
-	pwm {
-		compatible = "amlogic, meson-pwm";
-		status = "okay";
-		pwm-outputs 	= <PWM_A>,<PWM_B>,<PWM_C>,<PWM_D>,
-			      	  <PWM_E>,<PWM_F>,<PWM_AO_A>,<PWM_AO_B>;
-		pwm-outputs-new = <PWM_A>,<PWM_B>,<PWM_C>,<PWM_D>,
-				  <PWM_E>,<PWM_F>,<PWM_AO_A>,<PWM_AO_B>,
-			          <PWM_A2>,<PWM_B2>,<PWM_C2>,<PWM_D2>,
-			          <PWM_E2>,<PWM_F2>,<PWM_AO_A2>,<PWM_AO_B2>;
-		reg = <0x0 0xc1108550 0x0 0x30>,
-		      <0x0 0xc8100550  0x0 0x10>;
-		clocks = <&clock CLK_XTAL>,
-			 <&clock CLK_VID_PLL>,
-			 <&clock CLK_FPLL_DIV4>,
-			 <&clock CLK_FPLL_DIV3>;
-		clock-names = "xtal",
-			      "vid_pll_clk",
-			      "fclk_div4",
-			      "fclk_div3";
-		clock-select = <XTAL_CLK>,<XTAL_CLK>,<XTAL_CLK>,<XTAL_CLK>,
-			       	   <XTAL_CLK>,<XTAL_CLK>,<XTAL_CLK>,<XTAL_CLK>;
-		clock-select-new = <XTAL_CLK>,<XTAL_CLK>,<XTAL_CLK>,<XTAL_CLK>,
-		                   <XTAL_CLK>,<XTAL_CLK>,<XTAL_CLK>,<XTAL_CLK>,
-		                   <XTAL_CLK>,<XTAL_CLK>,<XTAL_CLK>,<XTAL_CLK>,
-		                   <XTAL_CLK>,<XTAL_CLK>,<XTAL_CLK>,<XTAL_CLK>;
-		                   /*all channels use the default clock source XTAL_CLK*/
-		                   /*and you can shoose it in file dt-bindings/pwm/meson.h*/
-	};
 
 	gpio_keypad{
 		compatible = "amlogic, gpio_keypad";

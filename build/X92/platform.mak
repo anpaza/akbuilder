@@ -3,7 +3,8 @@
 # Compiler prefix for target platform
 KERNEL_GCC_PREFIX ?= aarch64-linux-gnu-
 # The directory prefix where to look for the AMLogic openlinux buildroot source code
-AMLOGIC_BUILDROOT_DIR ?= ../buildroot-openlinux-20170310
+#AMLOGIC_BUILDROOT_DIR ?= ../buildroot-openlinux-20170310
+AMLOGIC_BUILDROOT_DIR ?= ../buildroot_openlinux_kernel_4.9
 # The directory for the linux_vfd project (https://github.com/anpaza/linux_vfd)
 LINUX_VFD_DIR ?= ../linux_vfd
 # The directory prefix where to look for Linary GCC build
@@ -26,7 +27,7 @@ KERNEL.DTS.DIR = $(KERNEL.OUT)arch/arm64/boot/dts/amlogic/
 
 # One kernel to rule them all...
 KERNEL.DIR ?= $(AMLOGIC_BUILDROOT_DIR)/kernel/aml-$(PLATFORM.KERNEL_VER)
-KERNEL.SUFFIX ?= -zap-1
+KERNEL.SUFFIX ?= -zap-2
 KERNEL.ARCH = arm64
 KERNEL.LOADADDR ?= 0x1080000
 include build/kernel.mak
@@ -57,7 +58,7 @@ include build/initramfs.mak
 BOOTIMG.ORIG ?= $(wildcard data/boot.img)
 include build/bootimg.mak
 
-$(KERNEL.OUT)arch/arm64/boot/dts/amlogic/gxm_x92_2g.dts: $(KERNEL.OUT).stamp.copy
+$(KERNEL.OUT)arch/arm64/boot/dts/amlogic/gxm_q201_2g.dts: $(KERNEL.OUT).stamp.copy
 
 # Create the X92-specific DTS
 X92_DTS_PATCH = build/$(PLATFORM)/kernel/x92-dts.patch

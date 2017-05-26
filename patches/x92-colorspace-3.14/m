@@ -1,0 +1,12 @@
+#!/bin/sh
+
+PATCH=../../build/X92/kernel/linux-3.14-x92-colorspace.patch
+
+cat > $PATCH << EOF
+This patch adds a new sysfs attribute for the amhdmitx driver
+named colorspace_force. This attribute allows forcing a specific
+output mode via HDMI.
+
+EOF
+
+diff -ur original modified >> $PATCH

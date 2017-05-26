@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 3.14.29-zap-1 Kernel Configuration
+# Linux/arm64 3.14.29-zap-2 Kernel Configuration
 #
 CONFIG_ARM64=y
 CONFIG_ARM64_HAS_SG_CHAIN=y
@@ -1070,6 +1070,8 @@ CONFIG_GE2D_KEEP_FRAME=y
 #
 # Video Decoders
 #
+CONFIG_MULTI_DEC=y
+CONFIG_AM_VDEC_DV=y
 CONFIG_AM_VDEC_MPEG12=y
 CONFIG_AM_VDEC_MPEG4=y
 CONFIG_AM_VDEC_MMPEG4=y
@@ -1081,6 +1083,7 @@ CONFIG_AM_VDEC_H264_4K2K=y
 CONFIG_AM_VDEC_H265=y
 CONFIG_AM_VDEC_VP9=y
 CONFIG_AM_VDEC_MJPEG=y
+CONFIG_AM_VDEC_MMJPEG=y
 CONFIG_AM_ENCODER=y
 CONFIG_AM_JPEG_ENCODER=y
 CONFIG_AM_PIC_DEC=y
@@ -1182,6 +1185,11 @@ CONFIG_TVIN_HDMI_CEC=y
 #
 CONFIG_AM_VECM=y
 # CONFIG_AML_NAND is not set
+
+#
+# Meson NAND Device Support
+#
+# CONFIG_AMLOGIC_NAND is not set
 CONFIG_AM_INPUT=y
 CONFIG_AM_SARADC=y
 CONFIG_AMLOGIC_REMOTE=y
@@ -1265,6 +1273,11 @@ CONFIG_AML_AO_CEC=y
 #
 CONFIG_CRYPTO_AML=y
 CONFIG_AMLOGIC_WATCHPOINT=y
+
+#
+# ESM Support
+#
+# CONFIG_AML_ESM is not set
 
 #
 # Generic Driver Options
@@ -2369,7 +2382,7 @@ CONFIG_MEDIA_SUPPORT=y
 #
 CONFIG_MEDIA_CAMERA_SUPPORT=y
 # CONFIG_MEDIA_ANALOG_TV_SUPPORT is not set
-CONFIG_MEDIA_DIGITAL_TV_SUPPORT=y
+# CONFIG_MEDIA_DIGITAL_TV_SUPPORT is not set
 # CONFIG_MEDIA_RADIO_SUPPORT is not set
 # CONFIG_MEDIA_RC_SUPPORT is not set
 # CONFIG_MEDIA_CONTROLLER is not set
@@ -2382,11 +2395,7 @@ CONFIG_VIDEOBUF_RESOURCE=y
 CONFIG_VIDEOBUF2_CORE=y
 CONFIG_VIDEOBUF2_MEMOPS=y
 CONFIG_VIDEOBUF2_VMALLOC=y
-CONFIG_DVB_CORE=y
-CONFIG_DVB_NET=y
 # CONFIG_TTPCI_EEPROM is not set
-CONFIG_DVB_MAX_ADAPTERS=8
-# CONFIG_DVB_DYNAMIC_MINORS is not set
 
 #
 # Media drivers
@@ -2454,18 +2463,6 @@ CONFIG_USB_GSPCA=y
 # CONFIG_VIDEO_USBTV is not set
 
 #
-# Analog/digital TV USB devices
-#
-# CONFIG_VIDEO_AU0828 is not set
-
-#
-# Digital TV USB devices
-#
-# CONFIG_DVB_USB_V2 is not set
-# CONFIG_SMS_USB_DRV is not set
-# CONFIG_DVB_B2C2_FLEXCOP_USB is not set
-
-#
 # Webcam, TV (analog/digital) USB devices
 #
 # CONFIG_VIDEO_EM28XX is not set
@@ -2476,14 +2473,12 @@ CONFIG_USB_GSPCA=y
 #
 # Supported MMC/SDIO adapters
 #
-# CONFIG_SMS_SDIO_DRV is not set
 # CONFIG_CYPRESS_FIRMWARE is not set
 
 #
 # Media ancillary drivers (tuners, sensors, i2c, frontends)
 #
 CONFIG_MEDIA_SUBDRV_AUTOSELECT=y
-CONFIG_MEDIA_ATTACH=y
 
 #
 # Audio decoders, processors and mixers
@@ -2527,42 +2522,6 @@ CONFIG_MEDIA_ATTACH=y
 
 #
 # Sensors used on soc_camera driver
-#
-
-#
-# Multistandard (satellite) frontends
-#
-
-#
-# Multistandard (cable + terrestrial) frontends
-#
-
-#
-# DVB-S (satellite) frontends
-#
-
-#
-# DVB-T (terrestrial) frontends
-#
-
-#
-# DVB-C (cable) frontends
-#
-
-#
-# ATSC (North American/Korean Terrestrial/Cable DTV) frontends
-#
-
-#
-# ISDB-T (terrestrial) frontends
-#
-
-#
-# Digital terrestrial only tuners/PLL
-#
-
-#
-# SEC control devices for DVB-S
 #
 
 #
@@ -2684,6 +2643,7 @@ CONFIG_SND_SOC_AMLPMU4=y
 CONFIG_SND_SOC_PCM2BT=y
 CONFIG_SND_SOC_AMLT9015=y
 CONFIG_SND_SOC_AMLT9015S=y
+CONFIG_SND_SOC_AMLTXLX_ACODEC=y
 # CONFIG_SND_SIMPLE_CARD is not set
 # CONFIG_SOUND_PRIME is not set
 

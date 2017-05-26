@@ -10,35 +10,166 @@ on post-fs-data
     insmod /lib/modules/${ro.kernel.build}/mali.ko
 
 on boot
-    setprop ro.radio.noril true
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 2016000
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 96000
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor interactive
-    write /sys/class/freq_limit/limit 0
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_dflt_freq 2016000
-    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq 2016000
-    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq 96000
-    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor interactive
+    # chmod/chown sysfs entries not handled by ueventd
+    chmod 0666 /sys/class/audiodsp/codec_fatal_err
+    chown media system /sys/class/audiodsp/codec_fatal_err
+    chmod 0666 /sys/class/ppmgr/angle
+    chown media system /sys/class/ppmgr/angle
 
-#HDMI IN
-    chmod 666 /sys/class/sii9233a/port
-    chmod 666 /sys/class/sii9233a/enable
-    chmod 666 /sys/module/tvin_vdin/parameters/max_buf_num
+    chmod 0666 /sys/class/vfm/map
+    chown media system /sys/class/vfm/map
+    chmod 0666 /sys/class/video/axis
+    chown media system /sys/class/video/axis
+    chmod 0666 /sys/class/video/disable_video
+    chown media system /sys/class/video/disable_video
+    chmod 0444 /sys/class/video/device_resolution
+    chown media system /sys/class/video/device_resolution
+    chmod 0666 /sys/class/tsync/enable
+    chown media system /sys/class/tsync/enable
+    chmod 0666 /sys/class/tsync/pts_pcrscr
+    chown media system /sys/class/tsync/pts_pcrscr
+    chmod 0666 /sys/class/tsync/pts_video
+    chown media system /sys/class/tsync/pts_video
+    chmod 0666 /sys/class/tsync/pts_audio
+    chown media system /sys/class/tsync/pts_audio
+    chmod 0666 /sys/class/tsync/event
+    chown media system /sys/class/tsync/event
+    chmod 0666 /sys/class/tsync/mode
+    chown media system /sys/class/tsync/mode
+    chmod 0666 /sys/class/tsync/av_threshold_min
+    chown media system /sys/class/tsync/av_threshold_min
+    chmod 0666 /sys/class/tsync/av_threshold_max
+    chown media system /sys/class/tsync/av_threshold_max
+    chmod 0664 /sys/class/tsync/pcr_recover
+    chown media system /sys/class/tsync/pcr_recover
+    chmod 0666 /sys/class/video/screen_mode
+    chown media system /sys/class/video/screen_mode
+    chmod 0666 /sys/class/vdec/poweron_clock_level
+    chown media system /sys/class/vdec/poweron_clock_level
+    chmod 0666 /sys/class/display/mode
+    chown media system /sys/class/display/mode
+    chmod 0664 /sys/class/display/axis
+    chown media system /sys/class/display/axis
+    chmod 0664 /sys/class/display/fr_policy
+    chown media system /sys/class/display/fr_policy
 
-    #chmod 0666 /dev/amstream_sub_read
+    chmod 0664 /sys/class/subtitle/enable
+    chown system system /sys/class/subtitle/enable
+    chmod 0664 /sys/class/subtitle/total
+    chown system system /sys/class/subtitle/total
+    chmod 0664 /sys/class/subtitle/width
+    chown system system /sys/class/subtitle/width
+    chmod 0664 /sys/class/subtitle/height
+    chown system system /sys/class/subtitle/height
+    chmod 0664 /sys/class/subtitle/type
+    chown system system /sys/class/subtitle/type
+    chmod 0664 /sys/class/subtitle/curr
+    chown system system /sys/class/subtitle/curr
+    chmod 0664 /sys/class/subtitle/size
+    chown system system /sys/class/subtitle/size
+    chmod 0664 /sys/class/subtitle/data
+    chown system system /sys/class/subtitle/data
+    chmod 0664 /sys/class/subtitle/startpts
+    chown system system /sys/class/subtitle/startpts
+    chmod 0664 /sys/class/subtitle/fps
+    chown system system /sys/class/subtitle/fps
+    chmod 0664 /sys/class/subtitle/subtype
+    chown system system /sys/class/subtitle/subtype
+    chmod 0664 /sys/class/subtitle/index
+    chown system system /sys/class/subtitle/index
 
-    #insmod  /system/lib/audio_data.ko
+    chmod 0664 /sys/class/audiodsp/digital_codec
+    chown media system /sys/class/audiodsp/digital_codec
 
-    # chmod 0666 /dev/ge2d
-    chmod 666 /dev/cec
-#add 905x led gpio permission
-    chmod 666 /sys/class/led_gpio/led_gpio
-#chmod key interface permission
+    chmod 0666 /sys/class/video/blackout_policy
+    chown media system /sys/class/video/blackout_policy
+    chmod 0666 /sys/class/video/screen_mode
+    chown media system /sys/class/video/screen_mode
+    chmod 0666 /sys/class/video/axis
+    chown media system /sys/class/video/axis
+    chmod 0666 /sys/class/video/disable_video
+    chown media system /sys/class/video/disable_video
+    chmod 0664 /sys/class/video/zoom
+    chown media system /sys/class/video/zoom
+    chmod 0664 /sys/class/video/free_keep_buffer
+    chown media system /sys/class/video/free_keep_buffer
+    chmod 0664 /sys/class/video/free_cma_buffer
+    chown media system /sys/class/video/free_cma_buffer
+    chmod 0664 /sys/class/ppmgr/angle
+    chown media system /sys/class/ppmgr/angle
+    chmod 0664 /sys/class/ppmgr/disp
+    chown media system /sys/class/ppmgr/disp
+    chmod 0664 /sys/class/ppmgr/ppscaler
+    chown media system /sys/class/ppmgr/ppscaler
+    chmod 0664 /sys/class/ppmgr/ppscaler_rect
+    chown media system /sys/class/ppmgr/ppscaler_rect
+    chmod 0664 /sys/class/ppmgr/vtarget
+    chown media system /sys/class/ppmgr/vtarget
+    chmod 0666 /sys/class/ppmgr/ppmgr_3d_mode
+    chown media system /sys/class/ppmgr/ppmgr_3d_mode
+    chmod 0664 /sys/class/codec_mm/tvp_enable
+    chown media system /sys/class/codec_mm/tvp_enable
+
+    chmod 0666 /sys/class/tsync/vpause_flag
+    chown media system /sys/class/tsync/vpause_flag
+
+    chmod 0664 /sys/class/amaudio/audio_channels_mask
+    chown media system /sys/class/amaudio/audio_channels_mask
+    chmod 0664 /sys/class/amaudio/enable_resample
+    chown media system /sys/class/amaudio/enable_resample
+    chmod 0664 /sys/class/amaudio/resample_type
+    chown media system /sys/class/amaudio/resample_type
+    chmod 0664 /sys/class/amaudio/debug
+    chown media system /sys/class/amaudio/debug
+
+    chmod 0666 /sys/class/audiodsp/digital_raw
+    chown media system /sys/class/audiodsp/digital_raw
+    chmod 0666 /sys/class/audiodsp/digital_codec
+    chown media system /sys/class/audiodsp/digital_codec
+    chmod 0666 /sys/class/audiodsp/ac3_drc_control
+    chown media system /sys/class/audiodsp/ac3_drc_control
+    chmod 0666 /sys/class/audiodsp/dts_dec_control
+    chown media system /sys/class/audiodsp/dts_dec_control
+
+    chmod 0666 /sys/module/ionvideo/parameters/freerun_mode
+    chown media system /sys/module/ionvideo/parameters/freerun_mode
+    chmod 0664 /sys/module/amvdec_h264/parameters/dec_control
+    chown media system /sys/module/amvdec_h264/parameters/dec_control
+    chmod 0664 /sys/module/amvdec_mpeg12/parameters/dec_control
+    chown media system /sys/module/amvdec_mpeg12/parameters/dec_control
+    chmod 0664 /sys/module/di/parameters/bypass_hd
+    chown media system /sys/module/di/parameters/bypass_hd
+    chmod 0664 /sys/module/di/parameters/bypass_all
+    chown media system /sys/module/di/parameters/bypass_all
+    chmod 0664 /sys/module/amvideo/parameters/smooth_sync_enable
+    chown media system /sys/module/amvideo/parameters/smooth_sync_enable
+    chmod 0664 /sys/module/amvdec_h264/parameters/error_recovery_mode
+    chown media system /sys/module/amvdec_h264/parameters/error_recovery_mode
+    #di detect 3D
+    chmod 0664 /sys/module/di/parameters/det3d_en
+    chown media system /sys/module/di/parameters/det3d_en
+    chmod 0664 /sys/module/di/parameters/prog_proc_config
+    chown media system /sys/module/di/parameters/prog_proc_config
+
+    #chmod key interface permission
     chmod 0666 /sys/class/unifykeys/list
+    chown media system /sys/class/unifykeys/list
     chmod 0666 /sys/class/unifykeys/name
-    chmod 0666 /sys/class/unifykeys/write
+    chown media system /sys/class/unifykeys/name
     chmod 0666 /sys/class/unifykeys/read
-    chmod 0666 /sys/class/unifykeys/version
+    chown media system /sys/class/unifykeys/read
+    chmod 0666 /sys/class/unifykeys/write
+    chown media system /sys/class/unifykeys/write
+    chmod 0664 /sys/class/unifykeys/version
+    chown media system /sys/class/unifykeys/version
+
+    chmod 0664 /sys/class/mpgpu/scale_mode
+    chown media system /sys/class/mpgpu/scale_mode
+    chmod 0664 /sys/class/mpgpu/mpgpucmd
+    chown media system /sys/class/mpgpu/mpgpucmd
+
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor interactive
 
 #add system permission
     chmod 6755 /system/xbin/su
@@ -51,36 +182,6 @@ on fs
 
 on post-fs-data
     mkdir  /data/tee
-
-service wpa_supplicant /system/bin/wpa_supplicant \
-    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
-    -e/data/misc/wifi/entropy.bin \
-    -O/data/misc/wifi/sockets \
-    -g@android:wpa_wlan0
-    #   we will start as root and wpa_supplicant will switch to user wifi
-    #   after setting up the capabilities required for WEXT
-    #   user wifi
-    #   group wifi inet keystore
-    class main
-    socket wpa_wlan0 dgram 660 wifi wifi
-    disabled
-    oneshot
-
-service p2p_supplicant /system/bin/wpa_supplicant \
-    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
-    -I/system/etc/wifi/p2p_supplicant_overlay.conf \
-    -m/data/misc/wifi/p2p_supplicant.conf \
-    -O/data/misc/wifi/sockets \
-    -g@android:wpa_wlan0    \
-    -puse_p2p_group_interface=1p2p_device=1 -e/data/misc/wifi/entropy.bin
-#   we will start as root and wpa_supplicant will switch to user wifi
-#   after setting up the capabilities required for WEXT
-#   user wifi
-#   group wifi inet keystore
-    class main
-    socket wpa_wlan0 dgram 660 wifi wifi
-    disabled
-    oneshot
 
 on property:dev.bootcomplete=1
     start supersu
@@ -97,8 +198,3 @@ service preinstall /system/bin/preinstall.sh
     group root
     disabled
     oneshot
-
-#service tee_supplicant /system/bin/tee-supplicant
-#    class main
-#    oneshot
-#    seclabel u:r:tee:s0

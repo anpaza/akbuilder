@@ -48,6 +48,7 @@
 #include "tvafe_cvd.h"
 #include "tvafe_general.h"
 #include "tvafe.h"
+#include "tvafe_avin_detect.h"
 #include "../vdin/vdin_sm.h"
 
 
@@ -865,6 +866,13 @@ int tvafe_dec_open(struct tvin_frontend_s *fe, enum tvin_port_e port)
 						frontend);
 	struct tvafe_info_s *tvafe = &devp->tvafe;
 
+	if (port == TVIN_PORT_CVBS1) {
+		/*channel1*/
+		tvafe_cha1_SYNCTIP_close_config();
+	} else if (port == TVIN_PORT_CVBS2) {
+		/*channel2*/
+		tvafe_cha2_SYNCTIP_close_config();
+	}
 	mutex_lock(&devp->afe_mutex);
 	if (devp->flags & TVAFE_FLAG_DEV_OPENED) {
 
@@ -917,6 +925,7 @@ int tvafe_dec_open(struct tvin_frontend_s *fe, enum tvin_port_e port)
 	pr_info("[tvafe..] %s open port:0x%x ok.\n", __func__, port);
 
 	mutex_unlock(&devp->afe_mutex);
+
 	return 0;
 }
 
@@ -953,6 +962,11 @@ void tvafe_dec_start(struct tvin_frontend_s *fe, enum tvin_sig_fmt_e fmt)
 		mutex_unlock(&devp->afe_mutex);
 		return;
 	}
+
+	/*fix vg877 machine ntsc443 flash*/
+	if ((fmt == TVIN_SIG_FMT_CVBS_NTSC_443) &&
+		((port == TVIN_PORT_CVBS1) || (port == TVIN_PORT_CVBS2)))
+		W_APB_REG(CVD2_H_LOOP_MAXSTATE, 0x9);
 
 	tvafe->parm.info.fmt = fmt;
 	tvafe->parm.info.status = TVIN_SIG_STATUS_STABLE;
@@ -1052,9 +1066,6 @@ void tvafe_dec_close(struct tvin_frontend_s *fe)
 		mutex_unlock(&devp->afe_mutex);
 		return;
 	}
-#ifdef CONFIG_CMA
-	tvafe_cma_release(devp);
-#endif
 	/*del_timer_sync(&devp->timer);*/
 #ifdef CONFIG_AM_DVB
 	g_tvafe_info = NULL;
@@ -1077,6 +1088,9 @@ void tvafe_dec_close(struct tvin_frontend_s *fe)
 		adc_set_pll_cntl(0, ADC_EN_TVAFE);
 #endif
 
+#ifdef CONFIG_CMA
+	tvafe_cma_release(devp);
+#endif
 	/* init variable */
 	memset(tvafe, 0, sizeof(struct tvafe_info_s));
 
@@ -2399,8 +2413,13 @@ static int tvafe_drv_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 	size_io_reg = resource_size(res);
-	pr_info("tvafe_probe reg=%p,size=%x\n",
-			(void *)res->start, size_io_reg);
+	pr_info("%s:tvafe reg base=%p,size=%x\n",
+		__func__, (void *)res->start, size_io_reg);
+	if (!devm_request_mem_region(&pdev->dev,
+				res->start, size_io_reg, pdev->name)) {
+		dev_err(&pdev->dev, "Memory region busy\n");
+		return -EBUSY;
+	}
 	tvafe_reg_base =
 		devm_ioremap_nocache(&pdev->dev, res->start, size_io_reg);
 	if (!tvafe_reg_base) {
@@ -2411,7 +2430,10 @@ static int tvafe_drv_probe(struct platform_device *pdev)
 			__func__, tvafe_reg_base, size_io_reg);
 
 	/*remap hiu mem*/
-	tvafe_hiu_reg_base = ioremap(0xc883c000, 0x2000);
+	if (get_cpu_type() <= MESON_CPU_MAJOR_ID_TXL)
+		tvafe_hiu_reg_base = ioremap(0xc883c000, 0x2000);
+	else
+		tvafe_hiu_reg_base = ioremap(0xff63c000, 0x2000);
 	/* frontend */
 	tvin_frontend_init(&tdevp->frontend, &tvafe_dec_ops,
 						&tvafe_sm_ops, tdevp->index);
@@ -2447,7 +2469,13 @@ static int tvafe_drv_remove(struct platform_device *pdev)
 {
 	struct tvafe_dev_s *tdevp;
 	tdevp = platform_get_drvdata(pdev);
-
+	if (tvafe_hiu_reg_base)
+		iounmap(tvafe_hiu_reg_base);
+	if (tvafe_reg_base) {
+		devm_iounmap(&pdev->dev, tvafe_reg_base);
+		devm_release_mem_region(&pdev->dev, tvafe_memobj.start,
+			resource_size(&tvafe_memobj));
+	}
 	mutex_destroy(&tdevp->afe_mutex);
 	mutex_destroy(&pll_mutex);
 	tvin_unreg_frontend(&tdevp->frontend);

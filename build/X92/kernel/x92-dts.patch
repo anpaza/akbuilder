@@ -4,9 +4,9 @@ Beijing-platform. There is already a remote control section in
 mesongxm.dti (which is included from gxm_q201*.dts), but that one
 is for the new driver (which must be disabled in kernel config).
 
---- gxm_q201_2g.dts	2017-05-06 16:52:34.842945436 +0300
-+++ gxm_x92_2g.dts	2017-05-07 11:43:16.395752282 +0300
-@@ -28,7 +28,7 @@
+--- gxm_q201_2g.dts	2017-05-15 16:45:50.000000000 +0300
++++ gxm_x92_2g.dts	2017-05-27 00:36:06.171291497 +0300
+@@ -27,7 +27,7 @@
  / {
  	model = "Amlogic";
  	compatible = "amlogic, Gxm";
@@ -15,7 +15,7 @@ is for the new driver (which must be disabled in kernel config).
  	interrupt-parent = <&gic>;
  	#address-cells = <2>;
  	#size-cells = <2>;
-@@ -144,6 +144,38 @@
+@@ -148,6 +148,38 @@
  		led_active_low = <1>;
  	};
  
@@ -51,10 +51,10 @@ is for the new driver (which must be disabled in kernel config).
 +		dot_bits = /bits/ 8 <0 3 1 3 2 3 3 3 4 3 5 3 6 3>;
 +	};
 +
- 	meson-vout {
- 		compatible = "amlogic, meson-vout";
- 		dev_name = "meson-vout";
-@@ -206,24 +238,27 @@
+ 	chunk-reserve {
+ 		compatible = "amlogic, chunk-reserve";
+ 		memory-region = <&chunk_reserved>;
+@@ -216,24 +248,27 @@
  			dev_name = "codec_mm";
  			status = "okay";
  	};
@@ -100,7 +100,7 @@ is for the new driver (which must be disabled in kernel config).
  	mesonstream {
  		compatible = "amlogic, codec, streambuf";
  		dev_name = "mesonstream";
-@@ -891,7 +926,7 @@
+@@ -829,7 +864,7 @@
  		compatible = "synopsys, dwc3";
  		reg = <0x0 0xc9000000 0x0 0x100000>;
  		interrupts = <0 30 4>;

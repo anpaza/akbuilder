@@ -1,0 +1,240 @@
+This patch adds a new sysfs attribute for the amhdmitx driver
+named colorspace_force. This attribute allows forcing a specific
+output mode via HDMI.
+
+diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c modified/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
+--- original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c	2017-05-15 16:45:51.000000000 +0300
++++ modified/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c	2017-05-27 00:42:14.000000000 +0300
+@@ -364,12 +364,9 @@
+ 		vic = HDMI_4k2k_24;
+ 	else if (strncmp(mode, "smpte24hz", strlen("smpte24hz")) == 0)
+ 		vic = HDMI_4k2k_smpte_24;
+-	else
+-		;/* nothing */
+-
+-	if (strncmp(mode, "1080p60hz", strlen("1080p60hz")) == 0)
++	else if (strncmp(mode, "1080p60hz", strlen("1080p60hz")) == 0)
+ 		vic = HDMI_1080p60;
+-	if (strncmp(mode, "1080p50hz", strlen("1080p50hz")) == 0)
++	else if (strncmp(mode, "1080p50hz", strlen("1080p50hz")) == 0)
+ 		vic = HDMI_1080p50;
+ 
+ 	if (vic != HDMI_Unkown) {
+@@ -2277,6 +2274,46 @@
+ 	return pos;
+ }
+ 
++/* must be synchronized to enum hdmi_color_space */
++static const char *hdmi_color_space_s[] = {
++	"RGB444", /* COLORSPACE_RGB444 = 0 */
++	"YUV422", /* COLORSPACE_YUV422 = 1 */
++	"YUV444", /* COLORSPACE_YUV444 = 2 */
++	"YUV420", /* COLORSPACE_YUV420 = 3 */
++	"NONE",   /* COLORSPACE_RESERVED */
++};
++
++static ssize_t colorspace_force_show(struct device *dev,
++	struct device_attribute *attr, char *buf)
++{
++	if ((unsigned)hdmi_color_space_force >= ARRAY_SIZE(hdmi_color_space_s))
++		return 0;
++
++	return snprintf (buf, PAGE_SIZE, "%s\n", hdmi_color_space_s [hdmi_color_space_force]);
++}
++
++static ssize_t colorspace_force_store(struct device *dev,
++	struct device_attribute *attr, const char *buf, size_t count)
++{
++	int i;
++	char mode [10];
++
++	if (sscanf(buf, " %10s ", mode) != 1)
++		return -EINVAL;
++
++	for (i = 0; i < ARRAY_SIZE (hdmi_color_space_s); i++)
++		if (strcasecmp (mode, hdmi_color_space_s[i]) == 0) {
++			enum hdmi_color_space new_mode = (enum hdmi_color_space)i;
++			if (hdmi_color_space_force != new_mode) {
++				hdmi_color_space_force = new_mode;
++				hdmitx_set_display(&hdmitx_device, hdmitx_device.cur_VIC);
++			}
++			return count;
++		}
++
++	return -EINVAL;
++}
++
+ void hdmi_print(int dbg_lvl, const char *fmt, ...)
+ {
+ 	va_list args;
+@@ -2346,6 +2383,7 @@
+ static DEVICE_ATTR(hdmi_init, S_IRUGO, show_hdmi_init, NULL);
+ static DEVICE_ATTR(ready, S_IWUSR | S_IRUGO | S_IWGRP, show_ready, store_ready);
+ static DEVICE_ATTR(support_3d, S_IRUGO, show_support_3d, NULL);
++static DEVICE_ATTR_RW(colorspace_force);
+ 
+ /*****************************
+ *	hdmitx display client interface
+@@ -3242,6 +3280,7 @@
+ 	ret = device_create_file(dev, &dev_attr_support_3d);
+ 	ret = device_create_file(dev, &dev_attr_dc_cap);
+ 	ret = device_create_file(dev, &dev_attr_valid_mode);
++	ret = device_create_file(dev, &dev_attr_colorspace_force);
+ 
+ #ifdef CONFIG_AM_TV_OUTPUT
+ 	vout_register_client(&hdmitx_notifier_nb_v);
+@@ -3384,22 +3423,33 @@
+ 	device_remove_file(dev, &dev_attr_disp_cap);
+ 	device_remove_file(dev, &dev_attr_preferred_mode);
+ 	device_remove_file(dev, &dev_attr_disp_cap_3d);
++	device_remove_file(dev, &dev_attr_aud_cap);
+ 	device_remove_file(dev, &dev_attr_hdr_cap);
+ 	device_remove_file(dev, &dev_attr_dv_cap);
+-	device_remove_file(dev, &dev_attr_dc_cap);
+-	device_remove_file(dev, &dev_attr_valid_mode);
+-	device_remove_file(dev, &dev_attr_hpd_state);
+-	device_remove_file(dev, &dev_attr_hdmi_init);
+-	device_remove_file(dev, &dev_attr_ready);
+-	device_remove_file(dev, &dev_attr_support_3d);
++	device_remove_file(dev, &dev_attr_aud_ch);
++	device_remove_file(dev, &dev_attr_aud_output_chs);
+ 	device_remove_file(dev, &dev_attr_avmute);
+ 	device_remove_file(dev, &dev_attr_vic);
++	device_remove_file(dev, &dev_attr_phy);
+ 	device_remove_file(dev, &dev_attr_frac_rate_policy);
+ 	device_remove_file(dev, &dev_attr_rxsense_policy);
++	device_remove_file(dev, &dev_attr_hdcp_clkdis);
+ 	device_remove_file(dev, &dev_attr_hdcp_pwr);
+-	device_remove_file(dev, &dev_attr_aud_output_chs);
+-	device_remove_file(dev, &dev_attr_div40);
++	device_remove_file(dev, &dev_attr_hdcp_ksv_info);
++	device_remove_file(dev, &dev_attr_hdcp_ver);
++	device_remove_file(dev, &dev_attr_hdcp_byp);
++	device_remove_file(dev, &dev_attr_hdcp_mode);
+ 	device_remove_file(dev, &dev_attr_hdcp_repeater);
++	device_remove_file(dev, &dev_attr_hdcp_lstore);
++	device_remove_file(dev, &dev_attr_div40);
++	device_remove_file(dev, &dev_attr_hdcp_ctrl);
++	device_remove_file(dev, &dev_attr_hpd_state);
++	device_remove_file(dev, &dev_attr_hdmi_init);
++	device_remove_file(dev, &dev_attr_ready);
++	device_remove_file(dev, &dev_attr_support_3d);
++	device_remove_file(dev, &dev_attr_dc_cap);
++	device_remove_file(dev, &dev_attr_valid_mode);
++	device_remove_file(dev, &dev_attr_colorspace_force);
+ 
+ 	cdev_del(&hdmitx_device.cdev);
+ 
+diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c modified/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c
+--- original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c	2017-05-15 16:45:51.000000000 +0300
++++ modified/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c	2017-05-27 00:40:14.000000000 +0300
+@@ -33,7 +33,8 @@
+ #include <linux/amlogic/hdmi_tx/hdmi_tx_module.h>
+ #include <linux/amlogic/hdmi_tx/hdmi_tx_compliance.h>
+ 
+-static unsigned char hdmi_output_rgb;
++/* force output color space if not equal to RESERVED */
++enum hdmi_color_space hdmi_color_space_force = COLORSPACE_RESERVED;
+ static void hdmitx_set_spd_info(struct hdmitx_dev *hdev);
+ static void hdmi_set_vend_spec_infofram(struct hdmitx_dev *hdev,
+ 	enum hdmi_vic VideoCode);
+@@ -588,11 +589,6 @@
+ 		return 0;
+ }
+ 
+-void hdmitx_output_rgb(void)
+-{
+-	hdmi_output_rgb = 1;
+-}
+-
+ int hdmitx_set_display(struct hdmitx_dev *hdev, enum hdmi_vic VideoCode)
+ {
+ 	struct hdmitx_vidpara *param = NULL;
+@@ -617,10 +613,10 @@
+ 	param = hdmi_get_video_param(VideoCode);
+ 	hdev->cur_video_param = param;
+ 	if (param) {
+-		param->color = param->color_prefer;
+-		if (hdmi_output_rgb) {
+-			param->color = COLORSPACE_RGB444;
++		if (hdmi_color_space_force != COLORSPACE_RESERVED) {
++			param->color = hdmi_color_space_force;
+ 		} else {
++			param->color = param->color_prefer;
+ 			/* HDMI CT 7-24 Pixel Encoding
+ 			 * YCbCr to YCbCr Sink
+ 			 */
+@@ -634,6 +630,8 @@
+ 				break;
+ 			default:
+ 				param->color = COLORSPACE_RGB444;
++				pr_info("hdmitx: rx edid only support RGB format\n");
++				break;
+ 			}
+ 			/* For Y420 modes */
+ 			switch (VideoCode) {
+@@ -646,12 +644,10 @@
+ 			default:
+ 				break;
+ 			}
+-			if (param->color == COLORSPACE_RGB444) {
+-				hdev->para->cs = hdev->cur_video_param->color;
+-				pr_info("hdmitx: rx edid only support RGB format\n");
+-			}
+-
+ 		}
++		if (param->color == COLORSPACE_RGB444)
++			hdev->para->cs = param->color;
++
+ 		if (hdev->HWOp.SetDispMode(hdev) >= 0) {
+ 			/* HDMI CT 7-33 DVI Sink, no HDMI VSDB nor any
+ 			 * other VSDB, No GB or DI expected
+diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c modified/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c
+--- original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c	2017-05-15 16:45:51.000000000 +0300
++++ modified/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c	2017-05-27 00:40:14.000000000 +0300
+@@ -1963,11 +1963,13 @@
+ 		hdev->cur_video_param->color_depth = COLORDEPTH_36B;
+ 	else if (color_depth_f == 48)
+ 		hdev->cur_video_param->color_depth = COLORDEPTH_48B;
+-	hdmi_print(INF, SYS "set mode VIC %d (cd%d,cs%d,pm%d,vd%d,%x)\n",
+-		hdev->cur_video_param->VIC, color_depth_f, COLORSPACE_f,
+-		power_mode, power_off_vdac_flag, serial_reg_val);
+ 	if (COLORSPACE_f != 0)
+ 		hdev->cur_video_param->color = COLORSPACE_f;
++	hdmi_print(INF, SYS "set mode VIC %d (cd%d,cs%d,pm%d,vd%d,%x)\n",
++		hdev->cur_video_param->VIC,
++		hdev->cur_video_param->color_depth,
++		hdev->cur_video_param->color,
++		power_mode, power_off_vdac_flag, serial_reg_val);
+ 	hdmitx_set_pll(hdev);
+ 	/*hdmitx_set_phy(hdev);*/
+ 	if (hdev->flag_3dfp)
+@@ -2017,7 +2019,7 @@
+ 	hd_write_reg(P_VPU_HDMI_FMT_CTRL, (((TX_INPUT_COLOR_FORMAT ==
+ 		COLORSPACE_YUV420) ? 2 : 0)  << 0) | (2 << 2) |
+ 			(0 << 4) | /* [4]dith_en: disable dithering */
+-			(0  << 5) |
++			(0 << 5) |
+ 			(0 << 6)); /* [ 9: 6] hdmi_dith10_cntl. */
+ 	if (hdev->para->cs == COLORSPACE_YUV420) {
+ 		hd_set_reg_bits(P_VPU_HDMI_FMT_CTRL, 2, 0, 2);
+diff -ur original/include/linux/amlogic/hdmi_tx/hdmi_tx_module.h modified/include/linux/amlogic/hdmi_tx/hdmi_tx_module.h
+--- original/include/linux/amlogic/hdmi_tx/hdmi_tx_module.h	2017-05-15 16:45:54.000000000 +0300
++++ modified/include/linux/amlogic/hdmi_tx/hdmi_tx_module.h	2017-05-27 00:40:14.000000000 +0300
+@@ -425,6 +425,7 @@
+  **********************************************************************/
+ extern void hdmitx_init_parameters(struct hdmitx_info *info);
+ extern enum hdmi_vic hdmitx_edid_vic_tab_map_vic(const char *disp_mode);
++extern enum hdmi_color_space hdmi_color_space_force;
+ 
+ extern int hdmitx_edid_parse(struct hdmitx_dev *hdmitx_device);
+ extern int check_dvi_hdmi_edid_valid(unsigned char *buf);
+@@ -508,8 +509,6 @@
+ 
+ extern void hdmi_set_audio_para(int para);
+ 
+-extern void hdmitx_output_rgb(void);
+-
+ extern int get_cur_vout_index(void);
+ extern struct vinfo_s *hdmi_get_current_vinfo(void);
+ void phy_pll_off(void);

@@ -5,6 +5,7 @@
 OUT=out/X92/
 
 function build() {
+	rm -f ${OUT}{aml_autoscript,boot-$1.img,dtb.img}
 	make bootfiles BOOTIMG.FILE=boot-$1.img KERNEL.DTS=$2 \
 	    || exit $?
 

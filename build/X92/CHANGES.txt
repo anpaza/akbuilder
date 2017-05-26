@@ -1,6 +1,6 @@
 The difference between the modified and the stock X92 kernel:
 
-  * Modified kernel is based on the AMLogic kernel source released on 2017 10-Mar.
+  * Modified kernel is based on the AMLogic kernel source released on 16th May 2017.
     Stock kernel is based on an older AMLogic kernel source (Oct-2016 or so).
 
   * The LED display driver (named 'vfd') has been rewritten from scratch,
@@ -22,3 +22,29 @@ The difference between the modified and the stock X92 kernel:
 
     This driver and daemon is available separately from the GitHub:
     https://github.com/anpaza/linux_vfd
+
+  * Implemented colorspace force mode for HDMI output. Now you can force one of
+    the following output modes:
+
+        RGB444 - "usual" mode as used by all computer monitors. 8 bit for every
+                 of the R,G,B components, 24 bits per pixel.
+        YUV444 - also known as YCbCr 4:4:4, high-quality video output mode,
+                 Y,U,V components (brightness Y and two chromatic values U & V)
+                 use 8 bit per every pixel, 24 bits per pixel.
+        YUV422 - also known as YCbCr 4:2:2, standard mode, used for encoding in MPEG
+                 and JPEG standards, the Y component (brightness) is defined for every
+                 pixel, the U and V components are defined once for every two horizontally
+                 adjanced pixels. 32 bits per 2 pixels, or 16 bits per pixel.
+        YUV420 - also known as YCbCr 4:2:0, lower-quality mode used with limited bandwidth.
+                 Brightness Y is defined for every pixel, but chroma values U & V are
+                 defined once per every group of 2x2 pixels.
+                 48 bits per 4 pixels, or 12 bits per pixel.
+
+    To change the current mode, write the name of desired mode into the sysfs attribute
+    colorspace_force:
+
+        echo rgb444 > /sys/class/amhdmitx/amhdmitx0/colorspace_force
+
+    To restore default mode (autodetect using TV EDID data), write NONE to this attribute:
+
+        echo none > /sys/class/amhdmitx/amhdmitx0/colorspace_force

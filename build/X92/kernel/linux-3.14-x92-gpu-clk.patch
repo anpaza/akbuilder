@@ -3,8 +3,8 @@ to initialize anyway. It looks like the functionality of this
 driver is built into the mali driver itself.
 
 diff -ur original/arch/arm64/boot/dts/amlogic/mesongxm-gpu-t82x.dtsi modified/arch/arm64/boot/dts/amlogic/mesongxm-gpu-t82x.dtsi
---- original/arch/arm64/boot/dts/amlogic/mesongxm-gpu-t82x.dtsi	2017-03-25 06:28:19.000000000 +0300
-+++ modified/arch/arm64/boot/dts/amlogic/mesongxm-gpu-t82x.dtsi	2017-05-03 23:43:21.089315540 +0300
+--- original/arch/arm64/boot/dts/amlogic/mesongxm-gpu-t82x.dtsi	2017-05-15 16:45:50.000000000 +0300
++++ modified/arch/arm64/boot/dts/amlogic/mesongxm-gpu-t82x.dtsi	2017-05-27 00:51:08.239410884 +0300
 @@ -118,91 +118,4 @@
  		  };
  	};

@@ -8,4 +8,4 @@ a device tree for models with 3Gb RAM.
 
 EOF
 
-diff -u gxm_x92_2g.dts gxm_x92_3g.dts >> $PATCH
+diff -u ../x92-dts/gxm_x92_2g.dts gxm_x92_3g.dts >> $PATCH
