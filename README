@@ -64,7 +64,7 @@ Command line examples:
 
 - Try the 4.19 kernel (does not work yet :-P)
 
-    make bootfiles PLATFORM=X92 PLATFORM_KERNEL_VER=3.14
+    make bootfiles PLATFORM=X92 PLATFORM_KERNEL_VER=4.19
 
 
 CREDITS

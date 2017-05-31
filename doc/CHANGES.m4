@@ -1,8 +1,10 @@
-The difference between the modified and the stock X92 kernel:
+changequote(<<,>>)dnl
+changecom(`', `')dnl
+The difference between the modified and the stock PLATFORM kernel:
 
   * Modified kernel is based on the AMLogic kernel source released on 16th May 2017.
     Stock kernel is based on an older AMLogic kernel source (Oct-2016 or so).
-
+ifelse(<<PLATFORM>>, <<X92>>, <<
   * The LED display driver (named 'vfd') has been rewritten from scratch,
     since the AMLogic sources do not contain it.
     The driver in modified kernel is way more advanced.
@@ -22,7 +24,7 @@ The difference between the modified and the stock X92 kernel:
 
     This driver and daemon is available separately from the GitHub:
     https://github.com/anpaza/linux_vfd
-
+>>)
   * Implemented colorspace force mode for HDMI output. Now you can force one of
     the following output modes:
 

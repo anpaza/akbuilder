@@ -1,7 +1,9 @@
+changequote(<<,>>)dnl
+changecom(`', `')dnl
 What is it?
 -----------
 
-This is a modified kernel for X92 Android-TV box.
+This is a modified kernel for PLATFORM Android-TV box.
 A list of changes compared to the original kernel may be found
 in the file CHANGES.txt.
 
@@ -36,5 +38,5 @@ You can determine which kernel (stock or modified) is loaded by:
 * initial 'boot' animation
 * display content (modified kernel shows time/date/cpu temperature)
 * the output of 'uname -r' command, for example from a PC:
-    > adb connect 192.168.1.253 # the IP address of your X92
+    > adb connect 192.168.1.253 # the IP address of your PLATFORM
     > adb shell uname -r
