@@ -83,7 +83,7 @@ $(KERNEL.OUT).stamp.modules: $(KERNEL.OUT).stamp.config | $(KERNEL.FILE)
 	$(call TOUCH,$@)
 
 ifdef KERNEL.DTS
-$(KERNEL.DTB): $(KERNEL.DTS.DIR)$(KERNEL.DTS)
+$(KERNEL.DTB): $(KERNEL.DTS.DIR)$(KERNEL.DTS) | $(KERNEL.FILE)
 	$(KERNEL.MAKE) $(subst $(KERNEL.DTS.DIR),,$@)
 
 $(KERNEL.DTS.DIR)$(KERNEL.DTS): | $(KERNEL.OUT).stamp.config

@@ -59,8 +59,9 @@ Z5_DTS_PATCH = build/$(PLATFORM)/z5-dts.patch
 $(KERNEL.DTS.DIR)gxm_z5_2g.dts: $(Z5_DTS_PATCH) $(KERNEL.DTS.DIR)gxm_q201_2g.dts
 	$(call APPLY.PATCH,$<,,-o $@ $(word 2,$^))
 
-$(KERNEL.OUT)drivers/usb/dwc3/dwc3.ko: kernel-modules
-$(KERNEL.OUT)drivers/amlogic/usb/dwc_otg/310/dwc_otg.ko: kernel-modules
+$(INITRAMFS.DEP.dwc3.ko) \
+$(INITRAMFS.DEP.dwc_otg.ko) \
+$(INITRAMFS.DEP.overlay.ko): kernel-modules
 
 HELP += $(NL)bootfiles - Create the files needed to boot from SD card/USB stick
 

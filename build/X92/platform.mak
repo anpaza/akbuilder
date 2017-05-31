@@ -71,8 +71,9 @@ X92_DTS_PATCH_3G = build/$(PLATFORM)/x92-dts-3g.patch
 $(KERNEL.DTS.DIR)gxm_x92_3g.dts: $(X92_DTS_PATCH_3G) $(KERNEL.DTS.DIR)gxm_x92_2g.dts
 	$(call APPLY.PATCH,$<,,-o $@ $(word 2,$^))
 
-$(KERNEL.OUT)drivers/usb/dwc3/dwc3.ko: kernel-modules
-$(KERNEL.OUT)drivers/amlogic/usb/dwc_otg/310/dwc_otg.ko: kernel-modules
+$(INITRAMFS.DEP.dwc3.ko) \
+$(INITRAMFS.DEP.dwc_otg.ko) \
+$(INITRAMFS.DEP.overlay.ko): kernel-modules
 
 $(INITRAMFS.OUT)tree/vfdd: $(VFDD_BIN) $(INITRAMFS.OUT).stamp.copy
 	$(call CP,$<,$@)

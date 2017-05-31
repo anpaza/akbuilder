@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 3.14.29-zap-2 Kernel Configuration
+# Linux/arm64 3.14.29-zap-3 Kernel Configuration
 #
 CONFIG_ARM64=y
 CONFIG_ARM64_HAS_SG_CHAIN=y
@@ -3287,6 +3287,7 @@ CONFIG_QUOTACTL=y
 CONFIG_AUTOFS4_FS=y
 CONFIG_FUSE_FS=y
 # CONFIG_CUSE is not set
+CONFIG_OVERLAY_FS=m
 
 #
 # Caches
