@@ -82,7 +82,7 @@ $(OUT)aml_autoscript: $(PLATFORM.UBOOT_AUTOSCRIPT)
 
 deploy:
 	rm -f $(OUT){aml_autoscript,kernel.img,dtb.img}
-	$(MAKE) bootfiles BOOTIMG.FILE=kernel.img
+	+$(MAKE) bootfiles BOOTIMG.FILE=kernel.img
 	mkdir -p $(OUT)deploy
 	mv -f $(OUT){aml_autoscript,kernel.img,dtb.img} $(OUT)deploy
 	for x in doc/{README-boot*.m4,CHANGES*.m4} ; do \
