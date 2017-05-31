@@ -6,7 +6,7 @@ ifndef KD_MALI.DIR
 $(error Mali kernel driver source directory not defined)
 endif
 
-KD_MALI.OUT = $(call CFN,$(OUT)$(notdir $(KD_MALI.DIR))-$(KERNEL.RELEASE))/
+KD_MALI.OUT = $(call CFN,.)/$(OUT)$(notdir $(KD_MALI.DIR))-$(KERNEL.RELEASE)/
 OUTDIRS += $(KD_MALI.OUT)
 
 HELP += $(NL)kd-mali - Build the Mali kernel driver for $(PLATFORM)

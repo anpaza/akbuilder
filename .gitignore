@@ -3,4 +3,5 @@ local-config.mak
 mk
 out
 todo
-*deploy
+deploy*
+mk*

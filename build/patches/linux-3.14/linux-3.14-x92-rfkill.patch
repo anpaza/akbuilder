@@ -3,8 +3,8 @@ attribute. Normally it would check for CAP_NET_ADMIN but X92 firmware supposes
 it's limited only by filesystem access rights.
 
 diff -ur original/net/rfkill/core.c modified/net/rfkill/core.c
---- original/net/rfkill/core.c	2017-03-25 06:28:26.000000000 +0300
-+++ modified/net/rfkill/core.c	2017-05-06 10:09:29.000000000 +0300
+--- original/net/rfkill/core.c	2017-05-06 16:52:34.845945449 +0300
++++ modified/net/rfkill/core.c	2017-05-06 16:52:34.845945449 +0300
 @@ -703,8 +703,10 @@
  	unsigned long state;
  	int err;

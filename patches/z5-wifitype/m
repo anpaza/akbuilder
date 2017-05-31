@@ -1,0 +1,12 @@
+#!/bin/sh
+
+PATCH=../../build/VontarZ5/kernel/linux-3.14-z5-wifitype.patch
+
+cat > $PATCH << EOF
+This patch adds the /sys/module/gxbb_pm/parameters/wifi_type parameter
+which is used to differentiate between platforms with the BCM4335
+or the BCM6335 chips.
+
+EOF
+
+diff -ur original modified >> $PATCH

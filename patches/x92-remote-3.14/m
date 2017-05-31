@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PATCH=../../build/X92/kernel/linux-3.14-x92-remote.patch
+PATCH=../../build/patches/linux-3.14/linux-3.14-x92-remote.patch
 
 cat > $PATCH << EOF
 This patch enables the old remote control driver by Beijing-platform

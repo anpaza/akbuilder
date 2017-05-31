@@ -5,22 +5,15 @@
 OUT=out/X92/
 
 function build() {
-	rm -f ${OUT}{aml_autoscript,boot-$1.img,dtb.img}
-	make bootfiles BOOTIMG.FILE=boot-$1.img KERNEL.DTS=$2 \
+	rm -f ${OUT}{aml_autoscript,kernel.img,dtb.img}
+	make bootfiles PLATFORM=X92 BOOTIMG.FILE=kernel.img KERNEL.DTS=$2 \
 	    || exit $?
 
 	OUTD=${OUT}deploy/$1/
 	mkdir -p ${OUTD}
-	mv -f ${OUT}{aml_autoscript,boot-$1.img,dtb.img} ${OUTD}
+	mv -f ${OUT}{aml_autoscript,kernel.img,dtb.img} ${OUTD}
 	cp build/X92/{README-boot*.txt,CHANGES*.txt} ${OUTD}
 }
 
 build 2G gxm_x92_2g.dts
 build 3G gxm_x92_3g.dts
-
-make ${OUT}aml_autoscript PLATFORM.UBOOT_AUTOSCRIPT=build/X92/uboot-script-libreelec.txt \
-	|| exit $?
-OUTD=${OUT}deploy/autoboot/
-mkdir -p ${OUTD}
-mv -f ${OUT}aml_autoscript ${OUTD}
-cp build/X92/README-autoboot*.txt ${OUTD}

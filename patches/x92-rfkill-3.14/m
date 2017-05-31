@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PATCH=../../build/X92/kernel/linux-3.14-x92-rfkill.patch
+PATCH=../../build/patches/linux-3.14/linux-3.14-x92-rfkill.patch
 
 cat > $PATCH << EOF
 This patch relaxes security checks for writing the /sys/class/rfkill/*/state

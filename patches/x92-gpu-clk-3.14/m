@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PATCH=../../build/X92/kernel/linux-3.14-x92-gpu-clk.patch
+PATCH=../../build/patches/linux-3.14/linux-3.14-x92-gpu-clk.patch
 
 cat > $PATCH << EOF
 This patch removes the unneeded gpu_clk driver as it fails

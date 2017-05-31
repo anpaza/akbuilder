@@ -3,7 +3,6 @@
 # Compiler prefix for target platform
 KERNEL_GCC_PREFIX ?= aarch64-linux-gnu-
 # The directory prefix where to look for the AMLogic openlinux buildroot source code
-#AMLOGIC_BUILDROOT_DIR ?= ../buildroot-openlinux-20170310
 AMLOGIC_BUILDROOT_DIR ?= ../buildroot_openlinux_kernel_4.9
 # The directory for the linux_vfd project (https://github.com/anpaza/linux_vfd)
 LINUX_VFD_DIR ?= ../linux_vfd
@@ -13,7 +12,8 @@ PLATFORM.CC_DIR ?= $(AMLOGIC_BUILDROOT_DIR)/toolchain/gcc/linux-x86/aarch64/gcc-
 PLATFORM.KERNEL_VER ?= 3.14
 
 PLATFORM.KERNEL_CONFIG = build/$(PLATFORM)/kernel/config-$(PLATFORM.KERNEL_VER)
-PLATFORM.KERNEL_PATCHES = $(wildcard build/$(PLATFORM)/kernel/linux-$(PLATFORM.KERNEL_VER)-*.patch)
+PLATFORM.KERNEL_PATCHES = $(wildcard build/$(PLATFORM)/kernel/linux-$(PLATFORM.KERNEL_VER)-*.patch) \
+	$(wildcard build/patches/linux-$(PLATFORM.KERNEL_VER)/linux-$(PLATFORM.KERNEL_VER)-*.patch)
 # Make a link from '.' to 'customer' so that we can build dtbs
 define PLATFORM.KERNEL_COPY
 	ln -s $(call CFN,$(KERNEL.OUT)) $(KERNEL.OUT)customer
@@ -27,7 +27,7 @@ KERNEL.DTS.DIR = $(KERNEL.OUT)arch/arm64/boot/dts/amlogic/
 
 # One kernel to rule them all...
 KERNEL.DIR ?= $(AMLOGIC_BUILDROOT_DIR)/kernel/aml-$(PLATFORM.KERNEL_VER)
-KERNEL.SUFFIX ?= -zap-2
+KERNEL.SUFFIX ?= -zap-3
 KERNEL.ARCH = arm64
 KERNEL.LOADADDR ?= 0x1080000
 include build/kernel.mak
@@ -87,7 +87,7 @@ bootfiles: $(OUT)$(BOOTIMG.FILE) $(OUT)dtb.img $(OUT)aml_autoscript
 $(OUT)dtb.img: $(KERNEL.DTB)
 	$(call CP,$<,$@)
 
-PLATFORM.UBOOT_AUTOSCRIPT ?= build/X92/uboot-script.txt
+PLATFORM.UBOOT_AUTOSCRIPT ?= build/X92/uboot-script-libreelec.txt
 $(OUT)aml_autoscript: $(PLATFORM.UBOOT_AUTOSCRIPT)
 	sed -e 's/@BOOTIMG@/$(notdir $(OUT)$(BOOTIMG.FILE))/' $< > $@.tmp
 	mkimage -T script -C none -n 'X92 custom kernel autoscript' -d $@.tmp $@

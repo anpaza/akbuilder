@@ -4,6 +4,10 @@ Beijing-platform. There is already a remote control section in
 mesongxm.dti (which is included from gxm_q201*.dts), but that one
 is for the new driver (which must be disabled in kernel config).
 
+Also it modifies the Ethernet section to specify a gigabit
+controller rather than the 100MBit used in q201 dts, and disables
+the USB3 hub since there are no USB3 connectors in X92.
+
 --- gxm_q201_2g.dts	2017-05-15 16:45:50.000000000 +0300
 +++ gxm_x92_2g.dts	2017-05-27 00:36:06.171291497 +0300
 @@ -27,7 +27,7 @@

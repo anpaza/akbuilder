@@ -34,7 +34,8 @@
 #include <linux/amlogic/hdmi_tx/hdmi_tx_compliance.h>
 
 /* force output color space if not equal to RESERVED */
-enum hdmi_color_space hdmi_color_space_force = COLORSPACE_RESERVED;
+enum hdmi_color_space hdmi_force_color_space = COLORSPACE_RESERVED;
+unsigned long hdmi_force_color_depth = 0;
 static void hdmitx_set_spd_info(struct hdmitx_dev *hdev);
 static void hdmi_set_vend_spec_infofram(struct hdmitx_dev *hdev,
 	enum hdmi_vic VideoCode);
@@ -613,39 +614,49 @@ int hdmitx_set_display(struct hdmitx_dev *hdev, enum hdmi_vic VideoCode)
 	param = hdmi_get_video_param(VideoCode);
 	hdev->cur_video_param = param;
 	if (param) {
-		if (hdmi_color_space_force != COLORSPACE_RESERVED) {
-			param->color = hdmi_color_space_force;
-		} else {
-			param->color = param->color_prefer;
-			/* HDMI CT 7-24 Pixel Encoding
-			 * YCbCr to YCbCr Sink
-			 */
-			switch (hdev->RXCap.native_Mode & 0x30) {
-			case 0x20:/*bit5==1, then support YCBCR444 + RGB*/
-			case 0x30:
-				param->color = COLORSPACE_YUV444;
-				break;
-			case 0x10:/*bit4==1, then support YCBCR422 + RGB*/
-				param->color = COLORSPACE_YUV422;
-				break;
-			default:
-				param->color = COLORSPACE_RGB444;
-				pr_info("hdmitx: rx edid only support RGB format\n");
-				break;
-			}
-			/* For Y420 modes */
-			switch (VideoCode) {
-			case HDMI_3840x2160p50_16x9_Y420:
-			case HDMI_3840x2160p60_16x9_Y420:
-			case HDMI_4096x2160p50_256x135_Y420:
-			case HDMI_4096x2160p60_256x135_Y420:
-				param->color = COLORSPACE_YUV420;
-				break;
-			default:
-				break;
-			}
+		param->color = param->color_prefer;
+		/* HDMI CT 7-24 Pixel Encoding
+		 * YCbCr to YCbCr Sink
+		 */
+		switch (hdev->RXCap.native_Mode & 0x30) {
+		case 0x20:/*bit5==1, then support YCBCR444 + RGB*/
+		case 0x30:
+			param->color = COLORSPACE_YUV444;
+			break;
+		case 0x10:/*bit4==1, then support YCBCR422 + RGB*/
+			param->color = COLORSPACE_YUV422;
+			break;
+		default:
+			param->color = COLORSPACE_RGB444;
+			pr_info("hdmitx: rx edid only support RGB format\n");
+			break;
 		}
-		if (param->color == COLORSPACE_RGB444)
+		/* For Y420 modes */
+		switch (VideoCode) {
+		case HDMI_3840x2160p50_16x9_Y420:
+		case HDMI_3840x2160p60_16x9_Y420:
+		case HDMI_4096x2160p50_256x135_Y420:
+		case HDMI_4096x2160p60_256x135_Y420:
+			param->color = COLORSPACE_YUV420;
+			break;
+		default:
+			break;
+		}
+
+		if (hdmi_force_color_depth == 24)
+			hdev->para->cd = COLORDEPTH_24B;
+		else if (hdmi_force_color_depth == 30)
+			hdev->para->cd = COLORDEPTH_30B;
+		else if (hdmi_force_color_depth == 36)
+			hdev->para->cd = COLORDEPTH_36B;
+		else if (hdmi_force_color_depth == 48)
+			hdev->para->cd = COLORDEPTH_48B;
+		else
+			hdev->para->cd = param->color_depth;
+
+		if (hdmi_force_color_space != COLORSPACE_RESERVED)
+			hdev->para->cs = hdmi_force_color_space;
+		else
 			hdev->para->cs = param->color;
 
 		if (hdev->HWOp.SetDispMode(hdev) >= 0) {

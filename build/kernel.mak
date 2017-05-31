@@ -58,6 +58,7 @@ kernel-getconfig: $(KERNEL.OUT).stamp.config
 
 $(KERNEL.FILE): $(KERNEL.OUT).stamp.config
 	$(KERNEL.MAKE) Image.gz
+	$(call TOUCH,$@)
 
 $(KERNEL.OUT).stamp.copy: $(call DIRSTAMP,$(KERNEL.OUT))
 	$(call RCP,$(KERNEL.DIR)/.,$(KERNEL.OUT))
@@ -77,7 +78,7 @@ $(KERNEL.OUT).stamp.config: $(KERNEL.OUT).stamp.patch $(PLATFORM.KERNEL_CONFIG)
 	$(KERNEL.MAKE) prepare
 	$(call TOUCH,$@)
 
-$(KERNEL.OUT).stamp.modules: $(KERNEL.OUT).stamp.config
+$(KERNEL.OUT).stamp.modules: $(KERNEL.OUT).stamp.config | $(KERNEL.FILE)
 	$(KERNEL.MAKE) modules
 	$(call TOUCH,$@)
 
@@ -85,5 +86,5 @@ ifdef KERNEL.DTS
 $(KERNEL.DTB): $(KERNEL.DTS.DIR)$(KERNEL.DTS)
 	$(KERNEL.MAKE) $(subst $(KERNEL.DTS.DIR),,$@)
 
-$(KERNEL.DTS.DIR)$(KERNEL.DTS): $(KERNEL.OUT).stamp.config
+$(KERNEL.DTS.DIR)$(KERNEL.DTS): | $(KERNEL.OUT).stamp.config
 endif

@@ -1,0 +1,189 @@
+This patch adds a section for the old remote control driver from
+Beijing-platform. There is already a remote control section in
+mesongxm.dti (which is included from gxm_q201*.dts), but that one
+is for the new driver (which must be disabled in kernel config).
+
+Also it modifies the Ethernet section to specify a gigabit
+controller rather than the 100MBit used in q201 dts.
+
+Also it adds the dvb device present in the original Vontar Z5 dts file -
+although it doesn't seem present on the board, but just in case.
+
+--- gxm_q201_2g.dts	2017-05-15 16:45:50.000000000 +0300
++++ gxm_z5_2g.dts	2017-05-31 10:19:35.325496849 +0300
+@@ -27,7 +27,7 @@
+ / {
+ 	model = "Amlogic";
+ 	compatible = "amlogic, Gxm";
+-	amlogic-dt-id = "gxm_q201_2g";
++	amlogic-dt-id = "gxm_z5_2g";
+ 	interrupt-parent = <&gic>;
+ 	#address-cells = <2>;
+ 	#size-cells = <2>;
+@@ -148,6 +148,25 @@
+ 		led_active_low = <1>;
+ 	};
+ 
++	meson-remote {
++		compatible = "amlogic, aml_remote";
++		dev_name = "meson-remote";
++		status = "okay";
++		remote_ao_offset = <0x580>;
++		interrupts = <0x0 0xc4 0x1>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&remote_pins>;
++		/* [scan code] [linux key code] */
++		key_codes = /bits/ 16
++			    <0x02 KEY_POWER>,
++			    <0x07 KEY_VOLUMEDOWN>,
++			    <0x01 KEY_VOLUMEUP>,
++			    <0x05 KEY_MENU>,
++			    <0x04 KEY_CHANNELUP>,
++			    <0x06 KEY_CHANNELDOWN>,
++			    <0x00 KEY_ENTER>;
++	};
++
+ 	chunk-reserve {
+ 		compatible = "amlogic, chunk-reserve";
+ 		memory-region = <&chunk_reserved>;
+@@ -216,24 +235,27 @@
+ 			dev_name = "codec_mm";
+ 			status = "okay";
+ 	};
+-			ethmac: ethernet@0xc9410000 {
+-						compatible = "amlogic, gxbb-rmii-dwmac";
+-						reg = <0x0 0xc9410000 0x0 0x10000
+-						0x0 0xc8834540 0x0 0x8
+-						0x0 0xc8834558 0x0 0xc>;
+-						interrupts = <0 8 1>;
+-						phy-mode= "rmii";
+-						pinctrl-names = "internal_eth_pins";
+-						pinctrl-0 = <&internal_eth_pins>;
+-						mc_val = <0x1800>;
+-						resets = <&clock GCLK_IDX_ETHERNET>;
+-						reset-names = "ethpower";
+-						interrupt-names = "macirq";
+-						clocks = <&clock CLK_81>;
+-						clock-names = "ethclk81";
+-						internal_phy=<1>;
+-						wol=<0>;
+-    };
++	ethmac: ethernet@0xc9410000 {
++		compatible = "amlogic, gxbb-rgmii-dwmac";
++		reg = <0x0 0xc9410000 0x0 0x10000
++		0x0 0xc8834540 0x0 0x8
++		0x0 0xc8834558 0x0 0xc>;
++		interrupts = <0 8 1>;
++		phy-mode= "rgmii";
++		pinctrl-names = "external_eth_pins";
++		pinctrl-0 = <&external_eth_pins>;
++		rst_pin-gpios = <&gpio GPIOZ_14 0>;
++		GPIOZ4_pin-gpios = <&gpio GPIOZ_4 0>;
++		GPIOZ5_pin-gpios = <&gpio GPIOZ_5 0>;
++		mc_val = <0x1621>;
++		cali_val = <0x20000>;
++		resets = <&clock GCLK_IDX_ETHERNET>;
++		reset-names = "ethpower";
++		interrupt-names = "macirq";
++		clocks = <&clock CLK_81>;
++		clock-names = "ethclk81";
++		internal_phy=<0>;
++	};
+ 	mesonstream {
+ 		compatible = "amlogic, codec, streambuf";
+ 		dev_name = "mesonstream";
+@@ -512,6 +534,7 @@
+ 			gpio_dat3 = <&gpio       CARD_4       GPIO_ACTIVE_HIGH>;
+ 			jtag_pin =  <&gpio       CARD_0       GPIO_ACTIVE_HIGH>;
+ 			gpio_cd =  <&gpio       CARD_6       GPIO_ACTIVE_HIGH>;
++			card_in_delay = <400>;
+ 			irq_in = <3>;
+ 			irq_out = <5>;
+ 	   		card_type = <5>; /* 0:unknown, 1:mmc card(include eMMC), 2:sd card(include tSD), 3:sdio device(ie:sdio-wifi), 4:SD combo (IO+mem) card, 5:NON sdio device(means sd/mmc card), other:reserved */
+@@ -544,7 +567,7 @@
+ 	nand{
+ 		compatible = "amlogic, aml_nand";
+ 		dev_name = "nand";
+-		status = "disabled";
++		status = "okay";
+ 		reg = <0x0 0xd0074800 0x0 0x200>;
+ 		interrupts = <	0 34 1 >;
+ 		pinctrl-names = "nand_rb_mod","nand_norb_mod", "nand_cs_pins_only";
+@@ -829,7 +852,7 @@
+ 		compatible = "synopsys, dwc3";
+ 		reg = <0x0 0xc9000000 0x0 0x100000>;
+ 		interrupts = <0 30 4>;
+-		usb-phy = <&usb2_phy>, <&usb3_phy>;
++		usb-phy = <&usb2_phy>/*, <&usb3_phy>*/;
+ 		cpu-type = "gxl";
+ 		clock-src = "usb3.0";
+ 	};
+@@ -1139,6 +1162,31 @@
+ 			};
+ 		};
+ 	};
++
++	dvb {
++		compatible = "amlogic, dvb";
++		dev_name = "dvb";
++		status = "okay";
++		/*"parallel","serial","disable"*/
++		ts0 = "parallel";
++		ts0_control = <0>;
++		ts0_invert = <0>;
++		resets = <&clock GCLK_IDX_DEMUX
++			  &clock GCLK_IDX_ASYNC_FIFO
++			  &clock GCLK_IDX_AHB_ARB0
++			  &clock GCLK_IDX_HIU_PARSER_TOP>;
++		reset-names = "demux", "asyncfifo", "ahbarb0", "uparsertop";
++	};
++
++	dtv_params {
++		compatible = "dtv-params";
++		dev_name = "dtv-params";
++		demod_reset_1-gpio = <&gpio GPIODV_13 GPIO_ACTIVE_HIGH>;
++		ant_power_1-gpio = <&gpio GPIODV_14 GPIO_ACTIVE_HIGH>;
++		user_defined_1-gpio = <&gpio GPIODV_15 GPIO_ACTIVE_HIGH>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&dtv_params_pins>;
++	};
+ };
+ 
+ &pinmux {
+@@ -1160,6 +1208,29 @@
+ 		amlogic,clrmask=<5 0x3c33>;
+ 		amlogic,pins ="GPIOX_8", "GPIOX_9", "GPIOX_10", "GPIOX_11";
+ 	};
++
++	dvb_p_ts0_pins: dvb_p_ts0_pins {
++		amlogic,setmask = <0x2 0x1f>;
++		amlogic,clrmask = <0x3 0x787 0x2 0xff000400>;
++		amlogic,pins = "GPIODV_0", "GPIODV_1", "GPIODV_2", "GPIODV_3", "GPIODV_4", "GPIODV_5", "GPIODV_6", "GPIODV_7", "GPIODV_8", "GPIODV_9", "GPIODV_10";
++	};
++
++	dvb_s_ts0_pins: dvb_s_ts0_pins {
++		amlogic,setmask = <0x2 0x17>;
++		amlogic,clrmask = <0x3 0x584 0x2 0x7000000 0x1 0x100>;
++		amlogic,pins = "GPIODV_0", "GPIODV_8", "GPIODV_9", "GPIODV_10";
++	};
++
++	dvb_s_ts1_pins: dvb_s_ts1_pins {
++		amlogic,setmask = <0x3 0x17>;
++		amlogic,clrmask = <0x2 0xf0000 0x1 0x7>;
++		amlogic,pins = "GPIODV_0", "GPIODV_8", "GPIODV_9", "GPIODV_10";
++	};
++
++	dtv_params_pins: dtv_params_pins {
++		amlogic,clrmask = <0x1 0x38000000 0x3 0x80>;
++		amlogic,pins = "GPIODV_13", "GPIODV_14", "GPIODV_15";
++	};
+ };
+ &efuse {
+ 	status = "ok";
+@@ -1173,3 +1244,6 @@
+ &t82x_gpu {
+         tbl = <&dvfs285_cfg &dvfs400_cfg &dvfs500_cfg &dvfs666_cfg &dvfs666_cfg>;
+ };
++&i2c_b { /*I2C-B*/
++	status = "okay";
++};

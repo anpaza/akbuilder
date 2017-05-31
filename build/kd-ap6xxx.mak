@@ -6,7 +6,7 @@ ifndef KD_AP6XXX.DIR
 $(error Broadcom AP6xxx kernel driver source directory not defined)
 endif
 
-KD_AP6XXX.OUT = $(call CFN,$(OUT)$(notdir $(KD_AP6XXX.DIR))-$(KERNEL.RELEASE))/
+KD_AP6XXX.OUT = $(call CFN,.)/$(OUT)$(notdir $(KD_AP6XXX.DIR))-$(KERNEL.RELEASE)/
 OUTDIRS += $(KD_AP6XXX.OUT)
 
 HELP += $(NL)kd-ap6xxx - Build the Broadcom AP6xxx kernel driver for $(PLATFORM)

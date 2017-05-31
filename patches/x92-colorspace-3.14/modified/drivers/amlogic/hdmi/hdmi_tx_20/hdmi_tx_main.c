@@ -84,12 +84,14 @@ static int edid_rx_ext_data(unsigned char *ext, unsigned char regaddr,
 static void gpio_read_edid(unsigned char *rx_edid);
 static void hdmitx_get_edid(struct hdmitx_dev *hdev);
 static void hdmitx_set_drm_pkt(struct master_display_info_s *data);
-static void hdmitx_set_vsif_pkt(enum eotf_type type, uint8_t tunnel_mode);
+void hdmitx_set_vsif_pkt(enum eotf_type type, uint8_t tunnel_mode);
 static int check_fbc_special(unsigned char *edid_dat);
 static int hdcp_tst_sig;
 
 /* add attr for hdmi output colorspace and colordepth */
 static char fmt_attr[16];
+
+unsigned hdmi_force_rgb_range = RGB_RANGE_AUTO;
 
 #ifndef CONFIG_AM_TV_OUTPUT
 /* Fake vinfo */
@@ -1137,7 +1139,7 @@ static void hdmitx_set_drm_pkt(struct master_display_info_s *data)
 			SET_AVI_BT2020);
 }
 
-static void hdmitx_set_vsif_pkt(enum eotf_type type, uint8_t tunnel_mode)
+void hdmitx_set_vsif_pkt(enum eotf_type type, uint8_t tunnel_mode)
 {
 	struct hdmitx_dev *hdev = &hdmitx_device;
 	unsigned char VEN_HB[3] = {0x81, 0x01};
@@ -1213,8 +1215,13 @@ static void hdmitx_set_vsif_pkt(enum eotf_type type, uint8_t tunnel_mode)
 			hdev->HWOp.SetPacket(HDMI_PACKET_VEND, NULL, NULL);
 		hdev->HWOp.CntlConfig(hdev, CONF_AVI_RGBYCC_INDIC,
 			hdev->para->cs);
-		hdev->HWOp.CntlConfig(hdev, CONF_AVI_Q01, RGB_RANGE_LIM);
-		hdev->HWOp.CntlConfig(hdev, CONF_AVI_YQ01, YCC_RANGE_LIM);
+		hdev->HWOp.CntlConfig(hdev, CONF_AVI_Q01,
+			(hdmi_force_rgb_range != RGB_RANGE_AUTO) ? hdmi_force_rgb_range :
+			RGB_RANGE_LIM);
+		hdev->HWOp.CntlConfig(hdev, CONF_AVI_YQ01,
+			(hdmi_force_rgb_range == RGB_RANGE_FUL) ? YCC_RANGE_FUL :
+			(hdmi_force_rgb_range == RGB_RANGE_RSVD) ? YCC_RANGE_RSVD :
+			YCC_RANGE_LIM);
 	}
 }
 
@@ -2280,19 +2287,19 @@ static const char *hdmi_color_space_s[] = {
 	"YUV422", /* COLORSPACE_YUV422 = 1 */
 	"YUV444", /* COLORSPACE_YUV444 = 2 */
 	"YUV420", /* COLORSPACE_YUV420 = 3 */
-	"NONE",   /* COLORSPACE_RESERVED */
+	"AUTO",   /* COLORSPACE_RESERVED */
 };
 
-static ssize_t colorspace_force_show(struct device *dev,
+static ssize_t force_color_space_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
-	if ((unsigned)hdmi_color_space_force >= ARRAY_SIZE(hdmi_color_space_s))
+	if ((unsigned)hdmi_force_color_space >= ARRAY_SIZE(hdmi_color_space_s))
 		return 0;
 
-	return snprintf (buf, PAGE_SIZE, "%s\n", hdmi_color_space_s [hdmi_color_space_force]);
+	return snprintf (buf, PAGE_SIZE, "%s\n", hdmi_color_space_s [hdmi_force_color_space]);
 }
 
-static ssize_t colorspace_force_store(struct device *dev,
+static ssize_t force_color_space_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	int i;
@@ -2304,12 +2311,73 @@ static ssize_t colorspace_force_store(struct device *dev,
 	for (i = 0; i < ARRAY_SIZE (hdmi_color_space_s); i++)
 		if (strcasecmp (mode, hdmi_color_space_s[i]) == 0) {
 			enum hdmi_color_space new_mode = (enum hdmi_color_space)i;
-			if (hdmi_color_space_force != new_mode) {
-				hdmi_color_space_force = new_mode;
+			if (hdmi_force_color_space != new_mode) {
+				hdmi_force_color_space = new_mode;
 				hdmitx_set_display(&hdmitx_device, hdmitx_device.cur_VIC);
 			}
 			return count;
 		}
+
+	return -EINVAL;
+}
+
+static const char *hdmi_rgb_range_s[] = {
+	"DEFAULT",      /* RGB_RANGE_DEFAULT = 0, 16..235 */
+	"LIMITED",      /* RGB_RANGE_LIM = 1,     16..240 */
+	"FULL",         /* RGB_RANGE_FUL = 2,      1..254 */
+	"ALL",          /* RGB_RANGE_RSVD = 3,     0..255 */
+	"AUTO",		/* RGB_RANGE_AUTO = 4             */
+};
+
+static ssize_t force_color_range_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	if (hdmi_force_rgb_range >= ARRAY_SIZE(hdmi_rgb_range_s))
+		return 0;
+
+	return snprintf (buf, PAGE_SIZE, "%s\n", hdmi_rgb_range_s [hdmi_force_rgb_range]);
+}
+
+static ssize_t force_color_range_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	int i;
+	char mode [10];
+
+	if (sscanf(buf, " %10s ", mode) != 1)
+		return -EINVAL;
+
+	for (i = 0; i < ARRAY_SIZE (hdmi_rgb_range_s); i++)
+		if (strcasecmp (mode, hdmi_rgb_range_s[i]) == 0) {
+			if (hdmi_force_rgb_range != i) {
+				hdmi_force_rgb_range = i;
+				hdmitx_set_vsif_pkt(0, 0);
+			}
+			return count;
+		}
+
+	return -EINVAL;
+}
+
+static ssize_t force_color_depth_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	return snprintf (buf, PAGE_SIZE, "%lu\n", hdmi_force_color_depth);
+}
+
+static ssize_t force_color_depth_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	int mode;
+
+	if (sscanf(buf, " %d ", &mode) != 1)
+		return -EINVAL;
+
+        if ((mode == 0) || (mode == 24) || (mode == 30) || (mode == 36) || (mode == 48)) {
+		hdmi_force_color_depth = mode;
+		hdmitx_set_display(&hdmitx_device, hdmitx_device.cur_VIC);
+		return count;
+	}
 
 	return -EINVAL;
 }
@@ -2383,7 +2451,9 @@ static DEVICE_ATTR(hpd_state, S_IRUGO, show_hpd_state, store_hpd_state);
 static DEVICE_ATTR(hdmi_init, S_IRUGO, show_hdmi_init, NULL);
 static DEVICE_ATTR(ready, S_IWUSR | S_IRUGO | S_IWGRP, show_ready, store_ready);
 static DEVICE_ATTR(support_3d, S_IRUGO, show_support_3d, NULL);
-static DEVICE_ATTR_RW(colorspace_force);
+static DEVICE_ATTR_RW(force_color_space);
+static DEVICE_ATTR_RW(force_color_range);
+static DEVICE_ATTR_RW(force_color_depth);
 
 /*****************************
 *	hdmitx display client interface
@@ -3280,7 +3350,9 @@ static int amhdmitx_probe(struct platform_device *pdev)
 	ret = device_create_file(dev, &dev_attr_support_3d);
 	ret = device_create_file(dev, &dev_attr_dc_cap);
 	ret = device_create_file(dev, &dev_attr_valid_mode);
-	ret = device_create_file(dev, &dev_attr_colorspace_force);
+	ret = device_create_file(dev, &dev_attr_force_color_space);
+	ret = device_create_file(dev, &dev_attr_force_color_range);
+	ret = device_create_file(dev, &dev_attr_force_color_depth);
 
 #ifdef CONFIG_AM_TV_OUTPUT
 	vout_register_client(&hdmitx_notifier_nb_v);
@@ -3449,7 +3521,9 @@ static int amhdmitx_remove(struct platform_device *pdev)
 	device_remove_file(dev, &dev_attr_support_3d);
 	device_remove_file(dev, &dev_attr_dc_cap);
 	device_remove_file(dev, &dev_attr_valid_mode);
-	device_remove_file(dev, &dev_attr_colorspace_force);
+	device_remove_file(dev, &dev_attr_force_color_space);
+	device_remove_file(dev, &dev_attr_force_color_range);
+	device_remove_file(dev, &dev_attr_force_color_depth);
 
 	cdev_del(&hdmitx_device.cdev);
 

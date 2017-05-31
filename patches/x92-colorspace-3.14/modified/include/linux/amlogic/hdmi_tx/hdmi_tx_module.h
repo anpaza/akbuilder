@@ -356,6 +356,7 @@ struct hdmitx_dev {
 	#define RGB_RANGE_LIM		1
 	#define RGB_RANGE_FUL		2
 	#define RGB_RANGE_RSVD		3
+	#define RGB_RANGE_AUTO		4
 #define CONF_AVI_YQ01		(CMD_CONF_OFFSET + 0X2000 + 0x03)
 	#define YCC_RANGE_LIM		0
 	#define YCC_RANGE_FUL		1
@@ -425,7 +426,9 @@ struct hdmitx_dev {
  **********************************************************************/
 extern void hdmitx_init_parameters(struct hdmitx_info *info);
 extern enum hdmi_vic hdmitx_edid_vic_tab_map_vic(const char *disp_mode);
-extern enum hdmi_color_space hdmi_color_space_force;
+extern enum hdmi_color_space hdmi_force_color_space;
+extern unsigned long hdmi_force_color_depth;
+extern unsigned hdmi_force_rgb_range;
 
 extern int hdmitx_edid_parse(struct hdmitx_dev *hdmitx_device);
 extern int check_dvi_hdmi_edid_valid(unsigned char *buf);

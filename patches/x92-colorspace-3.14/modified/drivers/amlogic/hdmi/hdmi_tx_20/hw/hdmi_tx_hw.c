@@ -111,8 +111,6 @@ static char rptx_ksv_buf[635];
 static unsigned delay_flag;
 static unsigned long serial_reg_val = 0x1;
 static unsigned char i2s_to_spdif_flag = 1;
-static unsigned long color_depth_f;
-static unsigned long COLORSPACE_f;
 static unsigned char new_reset_sequence_flag = 1;
 static unsigned char power_mode = 1;
 static unsigned char power_off_vdac_flag;
@@ -123,6 +121,8 @@ static unsigned char power_off_vdac_flag;
 static unsigned char use_tvenc_conf_flag = 1;
 
 static unsigned char cur_vout_index = 1; /* CONFIG_AM_TV_OUTPUT2 */
+
+extern void hdmitx_set_vsif_pkt(enum eotf_type type, uint8_t tunnel_mode);
 
 static void hdmitx_set_packet(int type, unsigned char *DB, unsigned char *HB);
 static void hdmitx_setaudioinfoframe(unsigned char *AUD_DB,
@@ -1914,6 +1914,12 @@ static int hdmitx_set_dispmode(struct hdmitx_dev *hdev)
 	pr_info("hdmirx version is %s\n",
 		(rx_ver == 1) ? "2.0" : "1.4 or below");
 
+	hdmi_print(INF, SYS "set mode VIC %d (cd%d,cs%d,pm%d,vd%d,%x)\n",
+		hdev->cur_VIC,
+		hdev->para->cd,
+		hdev->para->cs,
+		power_mode, power_off_vdac_flag, serial_reg_val);
+
 	switch (hdev->cur_VIC) {
 	case HDMI_3840x2160p50_16x9:
 	case HDMI_3840x2160p60_16x9:
@@ -1955,21 +1961,6 @@ static int hdmitx_set_dispmode(struct hdmitx_dev *hdev)
 	set_tmds_clk_div40(hdev->para->tmds_clk_div40);
 	scdc_config(hdev);
 
-	if (color_depth_f == 24)
-		hdev->cur_video_param->color_depth = COLORDEPTH_24B;
-	else if (color_depth_f == 30)
-		hdev->cur_video_param->color_depth = COLORDEPTH_30B;
-	else if (color_depth_f == 36)
-		hdev->cur_video_param->color_depth = COLORDEPTH_36B;
-	else if (color_depth_f == 48)
-		hdev->cur_video_param->color_depth = COLORDEPTH_48B;
-	if (COLORSPACE_f != 0)
-		hdev->cur_video_param->color = COLORSPACE_f;
-	hdmi_print(INF, SYS "set mode VIC %d (cd%d,cs%d,pm%d,vd%d,%x)\n",
-		hdev->cur_video_param->VIC,
-		hdev->cur_video_param->color_depth,
-		hdev->cur_video_param->color,
-		power_mode, power_off_vdac_flag, serial_reg_val);
 	hdmitx_set_pll(hdev);
 	/*hdmitx_set_phy(hdev);*/
 	if (hdev->flag_3dfp)
@@ -2118,6 +2109,10 @@ next:
 	hdmitx_set_reg_bits(HDMITX_DWC_FC_INVIDCONF, 0, 3, 1);
 	mdelay(1);
 	hdmitx_set_reg_bits(HDMITX_DWC_FC_INVIDCONF, 1, 3, 1);
+
+	if (hdmi_force_rgb_range != RGB_RANGE_AUTO) {
+		hdmitx_set_vsif_pkt(0, 0);
+	}
 
 	return 0;
 }
@@ -2746,7 +2741,7 @@ static void hdmitx_print_info(struct hdmitx_dev *hdev, int pr_info_flag)
 {
 	hdmi_print(INF, "------------------\nHdmitx driver version: ");
 	hdmi_print(INF, "%s\nSerial %x\nColor Depth %d\n", HDMITX_VER,
-		serial_reg_val, color_depth_f);
+		serial_reg_val, hdmi_force_color_depth);
 	hdmi_print(INF, "current vout index %d\n", cur_vout_index);
 	hdmi_print(INF, "reset sequence %d\n", new_reset_sequence_flag);
 	hdmi_print(INF, "power mode %d\n", power_mode);
@@ -3181,20 +3176,22 @@ static void hdmitx_debug(struct hdmitx_dev *hdev, const char *buf)
 		return;
 	} else if (tmpbuf[0] == 'c') {
 		if (tmpbuf[1] == 'd') {
-			ret = kstrtoul(tmpbuf+2, 10, &color_depth_f);
-			if ((color_depth_f != 24) && (color_depth_f != 30) &&
-				(color_depth_f != 36)) {
+			ret = kstrtoul(tmpbuf+2, 10, &hdmi_force_color_depth);
+			if ((hdmi_force_color_depth != 24) && (hdmi_force_color_depth != 30) &&
+				(hdmi_force_color_depth != 36)) {
 				pr_info("Color depth %lu is not supported\n",
-					color_depth_f);
-			color_depth_f = 0;
+					hdmi_force_color_depth);
+			hdmi_force_color_depth = 0;
 			}
 		return;
 	} else if (tmpbuf[1] == 's') {
-		ret = kstrtoul(tmpbuf+2, 10, &COLORSPACE_f);
-		if (COLORSPACE_f > 2) {
-			pr_info("Color space %lu is not supported\n",
-				COLORSPACE_f);
-			COLORSPACE_f = 0;
+		unsigned long tmp;
+		ret = kstrtoul(tmpbuf+2, 10, &tmp);
+		hdmi_force_color_space = (enum hdmi_color_space)tmp;
+		if (hdmi_force_color_space > COLORSPACE_RESERVED) {
+			pr_info("Color space %u is not supported\n",
+				hdmi_force_color_space);
+			hdmi_force_color_space = COLORSPACE_RESERVED;
 		}
 	}
 	} else if (strncmp(tmpbuf, "i2s", 2) == 0) {
@@ -3921,9 +3918,11 @@ static int hdmitx_cntl_config(struct hdmitx_dev *hdev, unsigned cmd,
 		hdmitx_set_reg_bits(HDMITX_DWC_FC_AVICONF0, 0, 7, 1);
 		break;
 	case CONF_AVI_Q01:
+		pr_info ("Setting HDMI RGB range to %d\n", argv);
 		hdmitx_set_reg_bits(HDMITX_DWC_FC_AVICONF2, argv, 2, 2);
 		break;
 	case CONF_AVI_YQ01:
+		pr_info ("Setting HDMI YCC range to %d\n", argv);
 		hdmitx_set_reg_bits(HDMITX_DWC_FC_AVICONF3, argv, 2, 2);
 		break;
 	default:
@@ -4245,6 +4244,8 @@ static void config_hdmi20_tx(enum hdmi_vic vic,
 	unsigned char   default_phase = 0;
 	unsigned tmp = 0;
 
+	pr_info("color_depth=%d input_color_format=%d output_color_format=%d\n",
+		color_depth, input_color_format, output_color_format);
 #define GET_TIMING(name)      (t->name)
 
 	/* Enable clocks and bring out of reset */

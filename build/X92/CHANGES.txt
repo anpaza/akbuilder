@@ -41,10 +41,39 @@ The difference between the modified and the stock X92 kernel:
                  48 bits per 4 pixels, or 12 bits per pixel.
 
     To change the current mode, write the name of desired mode into the sysfs attribute
-    colorspace_force:
+    force_color_space:
 
-        echo rgb444 > /sys/class/amhdmitx/amhdmitx0/colorspace_force
+        echo rgb444 > /sys/class/amhdmitx/amhdmitx0/force_color_space
 
-    To restore default mode (autodetect using TV EDID data), write NONE to this attribute:
+    To restore default mode (autodetect using TV EDID data), write AUTO to this attribute:
 
-        echo none > /sys/class/amhdmitx/amhdmitx0/colorspace_force
+        echo auto > /sys/class/amhdmitx/amhdmitx0/force_color_space
+
+  * Implemented color depth switching for HDMI output:
+
+	echo 0  > /sys/class/amhdmitx/amhdmitx0/force_color_depth
+	echo 24 > /sys/class/amhdmitx/amhdmitx0/force_color_depth
+	echo 30 > /sys/class/amhdmitx/amhdmitx0/force_color_depth
+	echo 36 > /sys/class/amhdmitx/amhdmitx0/force_color_depth
+	echo 48 > /sys/class/amhdmitx/amhdmitx0/force_color_depth
+
+    The default value is 0, which gives same behaviour as stock kernel
+    (always 24 bits per pixel).
+
+  * Implemented color quantization range switching
+    (see HDMI 1.3 specs, chapter 6.6 "Video Quantization Ranges"):
+
+        echo MODE > /sys/class/amhdmitx/amhdmitx0/force_color_range
+
+    where MODE is one of:
+
+        default - for RGB colors range from 16 to 235 (below 16 - black, above 235 - white)
+                  for YUB colors (video) - Y from 16 to 235, Cb and Cr - from 16 to 240
+        limited - for RGB colors range from 16 to 240
+                  for YUB colors (video) - Y from 16 to 235, Cb and Cr - from 16 to 240
+        full    - for RGB colors range from 1 to 254 (standard does not allow 0 and 255)
+                  for YUB colors (video) - from 1 to 254
+        all     - for RGB colors range from 0 to 255 (non-standard)
+                  for YUB colors (video) - from 0 to 255
+
+    After rebooting the mode is "default".
