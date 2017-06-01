@@ -12,7 +12,7 @@ For S905/S912 CPUs you need a fresh snapshot of AMLogic's "OpenLinux"
 GIT repository (http://openlinux.amlogic.com). The latest snapshot
 as of today can be found here:
 
-    http://openlinux.amlogic.com:8000/download/ARM/filesystem/Linux_BSP/buildroot_openlinux_kernel_4.9_fbdev_20170515.tar.gz
+    http://openlinux.amlogic.com:8000/download/ARM/filesystem/Linux_BSP/buildroot_openlinux_kernel_3.14_fbdev_20170527.tar.gz
 
 Unpack it in same directory where akbuilder resides (you can override it
 by specifying AMLOGIC_BUILDROOT_DIR= on make command line).

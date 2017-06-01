@@ -47,6 +47,8 @@ UMOVE = cmp -s $1 $2 && rm -f $1 || mv -f $1 $2
 DIRSTAMP = $(addsuffix .stamp.dir,$1)
 # Output directory base
 OUT = out/$(PLATFORM)/
+# The directory with platform sources
+PLATFORM.DIR = build/$(PLATFORM)/
 
 # Append to OUTDIRS all output directories
 OUTDIRS = $(OUT)
@@ -61,3 +63,6 @@ define APPLY.PATCH
 	patch $(if $2,-d "$2") $3 <$(if $1,"$1")
 
 endef
+
+include $(PLATFORM.DIR)platform.mak
+include build/targets.mak

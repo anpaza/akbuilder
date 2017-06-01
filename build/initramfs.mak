@@ -2,10 +2,8 @@
 
 .PHONY: initramfs
 
-ifndef INITRAMFS.DIR
-$(error initramfs source directory not defined)
-endif
-
+# the directory with initramfs template
+INITRAMFS.DIR ?= $(PLATFORM.DIR)initramfs
 INITRAMFS.OUT = $(OUT)$(notdir $(INITRAMFS.DIR))-$(KERNEL.RELEASE)/
 OUTDIRS += $(INITRAMFS.OUT)
 

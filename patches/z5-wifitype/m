@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PATCH=../../build/VontarZ5/kernel/linux-3.14-z5-wifitype.patch
+PATCH=../../build/VontarZ5/linux-3.14/wifitype.patch
 
 cat > $PATCH << EOF
 This patch adds the /sys/module/gxbb_pm/parameters/wifi_type parameter

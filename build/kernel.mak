@@ -5,6 +5,7 @@
 # This file should be included from platform defines.mak, if appropiate
 
 .PHONY: kernel kernel-getconfig kernel-menuconfig kernel-modules kernel-clean
+.SUFFIXES: .dts .dtb
 
 ifeq ($(KERNEL.DIR),)
 $(error Kernel source directory not found! Please define KERNEL_DIR in local-config.mak!)
@@ -86,5 +87,9 @@ ifdef KERNEL.DTS
 $(KERNEL.DTB): $(KERNEL.DTS.DIR)$(KERNEL.DTS) | $(KERNEL.FILE)
 	$(KERNEL.MAKE) $(subst $(KERNEL.DTS.DIR),,$@)
 
-$(KERNEL.DTS.DIR)$(KERNEL.DTS): | $(KERNEL.OUT).stamp.config
+#$(KERNEL.DTS.DIR)$(KERNEL.DTS): | $(KERNEL.OUT).stamp.config
+
+# Wait until we make a copy of kernel tree before we look for any .dts files
+$(KERNEL.DTS.DIR)%.dts: | $(KERNEL.OUT).stamp.config
+	true
 endif

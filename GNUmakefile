@@ -7,6 +7,4 @@
 # (see what subdirectories are available under platforms/).
 PLATFORM ?= X92
 
-include build/init.mak
-include build/$(PLATFORM)/platform.mak
-include build/targets.mak
+include build/rules.mak

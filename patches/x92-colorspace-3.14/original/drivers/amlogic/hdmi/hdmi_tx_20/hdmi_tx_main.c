@@ -88,6 +88,9 @@ static void hdmitx_set_vsif_pkt(enum eotf_type type, uint8_t tunnel_mode);
 static int check_fbc_special(unsigned char *edid_dat);
 static int hdcp_tst_sig;
 
+static atomic_t kref_audio_mute;
+static atomic_t kref_video_mute;
+
 /* add attr for hdmi output colorspace and colordepth */
 static char fmt_attr[16];
 
@@ -303,6 +306,15 @@ static void set_test_mode(void)
 #endif
 }
 
+static void restore_mute(void)
+{
+	if (!(atomic_sub_and_test(0, &kref_video_mute)))
+		hdmitx_video_mute_op(0);
+
+	if (!(atomic_sub_and_test(0, &kref_audio_mute)))
+		hdmitx_audio_mute_op(0);
+}
+
 int get_cur_vout_index(void)
 /*
 return value: 1, vout; 2, vout2;
@@ -392,6 +404,7 @@ static  int  set_disp_mode(const char *mode)
 		hdmitx_device.auth_process_timer = AUTH_PROCESS_TIME;
 		hdmitx_device.internal_mode_change = 0;
 		set_test_mode();
+		restore_mute();
 	}
 
 	if (hdmitx_device.cur_VIC == HDMI_Unkown) {
@@ -537,14 +550,18 @@ static int set_disp_mode_auto(void)
 	info->fresh_tx_hdr_pkt = hdmitx_set_drm_pkt;
 	info->fresh_tx_vsif_pkt = hdmitx_set_vsif_pkt;
 	info->dv_info = &hdev->RXCap.dv_info;
-	info->hdr_info.hdr_support = (hdev->RXCap.hdr_sup_eotf_sdr << 0)
-			| (hdev->RXCap.hdr_sup_eotf_hdr << 1)
-			| (hdev->RXCap.hdr_sup_eotf_smpte_st_2084 << 2);
-	info->hdr_info.lumi_max = hdev->RXCap.hdr_lum_max;
-	info->hdr_info.lumi_avg = hdev->RXCap.hdr_lum_avg;
-	info->hdr_info.lumi_min = hdev->RXCap.hdr_lum_min;
-	pr_info("hdmitx: update rx hdr info %x\n",
-		info->hdr_info.hdr_support);
+	if (!((strncmp(info->name, "480cvbs", 7) == 0) ||
+		(strncmp(info->name, "576cvbs", 7) == 0) ||
+		(strncmp(info->name, "null", 4) == 0))) {
+		info->hdr_info.hdr_support = (hdev->RXCap.hdr_sup_eotf_sdr << 0)
+				| (hdev->RXCap.hdr_sup_eotf_hdr << 1)
+				| (hdev->RXCap.hdr_sup_eotf_smpte_st_2084 << 2);
+		info->hdr_info.lumi_max = hdev->RXCap.hdr_lum_max;
+		info->hdr_info.lumi_avg = hdev->RXCap.hdr_lum_avg;
+		info->hdr_info.lumi_min = hdev->RXCap.hdr_lum_min;
+		pr_info("hdmitx: update rx hdr info %x\n",
+			info->hdr_info.hdr_support);
+	}
 	hdmi_physcial_size_update(info, hdev);
 
 	/* If info->name equals to cvbs, then set mode to I mode to hdmi
@@ -644,6 +661,7 @@ static int set_disp_mode_auto(void)
 		hdev->auth_process_timer = AUTH_PROCESS_TIME;
 		hdev->internal_mode_change = 0;
 		set_test_mode();
+		restore_mute();
 	}
 	if (hdev->cur_VIC == HDMI_Unkown) {
 		if (hpdmode == 2) {
@@ -1043,6 +1061,41 @@ static ssize_t store_hdcp_repeater(struct device *dev,
 	return count;
 }
 
+/*
+ * hdcp22_type attr
+ */
+static bool hdcp22_type;
+static ssize_t show_hdcp22_type(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	int pos = 0;
+
+	pos += snprintf(buf+pos, PAGE_SIZE, "%d\n", hdcp22_type);
+
+	return pos;
+}
+
+static ssize_t store_hdcp22_type(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	if (buf[0] == '0')
+		hdcp22_type = 0;
+	if (buf[0] == '1')
+		hdcp22_type = 1;
+
+	return count;
+}
+
+static ssize_t show_hdcp22_base(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	int pos = 0;
+
+	pos += snprintf(buf+pos, PAGE_SIZE, "0x%x\n", get_hdcp22_base());
+
+	return pos;
+}
+
 void hdmitx_audio_mute_op(unsigned int flag)
 {
 	hdmitx_device.tx_aud_cfg = flag;
@@ -1054,6 +1107,17 @@ void hdmitx_audio_mute_op(unsigned int flag)
 			CONF_AUDIO_MUTE_OP, AUDIO_UNMUTE);
 }
 EXPORT_SYMBOL(hdmitx_audio_mute_op);
+
+void hdmitx_video_mute_op(unsigned int flag)
+{
+	if (flag == 0)
+		hdmitx_device.HWOp.CntlConfig(&hdmitx_device,
+			CONF_VIDEO_MUTE_OP, VIDEO_MUTE);
+	else
+		hdmitx_device.HWOp.CntlConfig(&hdmitx_device,
+			CONF_VIDEO_MUTE_OP, VIDEO_UNMUTE);
+}
+EXPORT_SYMBOL(hdmitx_video_mute_op);
 
 static void hdr_work_func(struct work_struct *work)
 {
@@ -1346,13 +1410,13 @@ static ssize_t store_config(struct device *dev,
 	return 16;
 }
 
-static atomic_t kref_audio_mute;
 static ssize_t show_aud_mute(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
 	int pos = 0;
 
-	pos += snprintf(buf+pos, PAGE_SIZE, "%d\n", kref_audio_mute.counter);
+	pos += snprintf(buf+pos, PAGE_SIZE, "%d\n",
+		atomic_read(&kref_audio_mute));
 	return pos;
 }
 
@@ -1361,13 +1425,43 @@ static ssize_t store_aud_mute(struct device *dev,
 {
 	if (buf[0] == '1') {
 		atomic_inc(&kref_audio_mute);
-		hdmitx_audio_mute_op(0);
+		if (atomic_read(&kref_audio_mute) == 1)
+			hdmitx_audio_mute_op(0);
 	}
 	if (buf[0] == '0') {
 		if (!(atomic_sub_and_test(0, &kref_audio_mute))) {
 			atomic_dec(&kref_audio_mute);
 			if (atomic_sub_and_test(0, &kref_audio_mute))
 				hdmitx_audio_mute_op(1);
+		}
+	}
+
+	return count;
+}
+
+static ssize_t show_vid_mute(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	int pos = 0;
+
+	pos += snprintf(buf+pos, PAGE_SIZE, "%d\n",
+		atomic_read(&kref_video_mute));
+	return pos;
+}
+
+static ssize_t store_vid_mute(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	if (buf[0] == '1') {
+		atomic_inc(&kref_video_mute);
+		if (atomic_read(&kref_video_mute) == 1)
+			hdmitx_video_mute_op(0);
+	}
+	if (buf[0] == '0') {
+		if (!(atomic_sub_and_test(0, &kref_video_mute))) {
+			atomic_dec(&kref_video_mute);
+			if (atomic_sub_and_test(0, &kref_video_mute))
+				hdmitx_video_mute_op(1);
 		}
 	}
 
@@ -1538,18 +1632,18 @@ static ssize_t show_aud_cap(struct device *dev,
 			aud_coding_type[pRXCap->RxAudioCap[i].
 				audio_format_code],
 			pRXCap->RxAudioCap[i].channel_num_max + 1);
-	for (j = 0; j < 7; j++) {
-		if (pRXCap->RxAudioCap[i].freq_cc & (1 << j))
-			pos += snprintf(buf + pos, PAGE_SIZE, "%s/",
-				aud_sampling_frequency[j+1]);
-	}
-	pos += snprintf(buf + pos - 1, PAGE_SIZE, " kHz, ");
-	for (j = 0; j < 3; j++) {
-		if (pRXCap->RxAudioCap[i].cc3 & (1 << j))
-			pos += snprintf(buf + pos, PAGE_SIZE, "%s/",
-				aud_sample_size[j+1]);
-	}
-	pos += snprintf(buf + pos - 1, PAGE_SIZE, " bit\n");
+		for (j = 0; j < 7; j++) {
+			if (pRXCap->RxAudioCap[i].freq_cc & (1 << j))
+				pos += snprintf(buf + pos, PAGE_SIZE, "%s/",
+					aud_sampling_frequency[j+1]);
+		}
+		pos += snprintf(buf + pos - 1, PAGE_SIZE, " kHz, ");
+		for (j = 0; j < 3; j++) {
+			if (pRXCap->RxAudioCap[i].cc3 & (1 << j))
+				pos += snprintf(buf + pos, PAGE_SIZE, "%s/",
+					aud_sample_size[j+1]);
+		}
+		pos += snprintf(buf + pos - 1, PAGE_SIZE, " bit\n");
 	}
 
 	return pos;
@@ -2298,6 +2392,8 @@ static DEVICE_ATTR(aud_mode, S_IWUSR | S_IRUGO, show_aud_mode,
 	store_aud_mode);
 static DEVICE_ATTR(aud_mute, S_IWUSR | S_IRUGO, show_aud_mute,
 	store_aud_mute);
+static DEVICE_ATTR(vid_mute, S_IWUSR | S_IRUGO, show_vid_mute,
+	store_vid_mute);
 static DEVICE_ATTR(edid, S_IWUSR | S_IRUGO, show_edid, store_edid);
 static DEVICE_ATTR(rawedid, S_IRUGO, show_rawedid, NULL);
 static DEVICE_ATTR(sink_type, S_IRUGO, show_sink_type, NULL);
@@ -2336,6 +2432,9 @@ static DEVICE_ATTR(hdcp_lstore, S_IWUSR | S_IRUGO | S_IWGRP, show_hdcp_lstore,
 	store_hdcp_lstore);
 static DEVICE_ATTR(hdcp_repeater, S_IWUSR | S_IRUGO | S_IWGRP,
 	show_hdcp_repeater, store_hdcp_repeater);
+static DEVICE_ATTR(hdcp22_type, S_IWUSR | S_IRUGO | S_IWGRP,
+	show_hdcp22_type, store_hdcp22_type);
+static DEVICE_ATTR(hdcp22_base, S_IRUGO, show_hdcp22_base, NULL);
 static DEVICE_ATTR(div40, S_IWUSR | S_IRUGO | S_IWGRP, show_div40, store_div40);
 static DEVICE_ATTR(hdcp_ctrl, S_IWUSR | S_IRUGO | S_IWGRP, show_hdcp_ctrl,
 	store_hdcp_ctrl);
@@ -2670,17 +2769,20 @@ void hdmitx_hpd_plugin_handler(struct work_struct *work)
 	pr_info("hdmitx: plugin\n");
 	hdev->hdmitx_event &= ~HDMI_TX_HPD_PLUGIN;
 	/* start reading E-EDID */
-	rx_repeat_hpd_state(1);
+	if (hdev->repeater_tx)
+		rx_repeat_hpd_state(1);
 	hdmitx_get_edid(hdev);
-	if (check_fbc_special(&hdev->EDID_buf[0])
-		|| check_fbc_special(&hdev->EDID_buf1[0]))
-		rx_set_repeater_support(0);
-	else
-		rx_set_repeater_support(1);
-	rx_repeat_hdcp_ver(get_downstream_hdcp_ver());
-	hdev->HWOp.CntlDDC(hdev, DDC_HDCP_GET_BKSV,
-		(unsigned long int)bksv_buf);
-	rx_set_receive_hdcp(bksv_buf, 1, 1, 0, 0);
+	if (hdev->repeater_tx) {
+		if (check_fbc_special(&hdev->EDID_buf[0])
+			|| check_fbc_special(&hdev->EDID_buf1[0]))
+			rx_set_repeater_support(0);
+		else
+			rx_set_repeater_support(1);
+		rx_repeat_hdcp_ver(get_downstream_hdcp_ver());
+		hdev->HWOp.CntlDDC(hdev, DDC_HDCP_GET_BKSV,
+			(unsigned long int)bksv_buf);
+		rx_set_receive_hdcp(bksv_buf, 1, 1, 0, 0);
+	}
 	set_disp_mode_auto();
 	hdmitx_set_audio(hdev, &(hdev->cur_audio_param), hdmi_ch);
 	hdev->hpd_state = 1;
@@ -2724,7 +2826,8 @@ void hdmitx_hpd_plugout_handler(struct work_struct *work)
 		return;
 	}
 	hdev->ready = 0;
-	rx_repeat_hpd_state(0);
+	if (hdev->repeater_tx)
+		rx_repeat_hpd_state(0);
 	hdev->HWOp.CntlConfig(hdev, CONF_CLR_AVI_PACKET, 0);
 	hdev->HWOp.CntlDDC(hdev, DDC_HDCP_MUX_INIT, 1);
 	hdev->HWOp.CntlDDC(hdev, DDC_HDCP_OP, HDCP14_OFF);
@@ -3207,6 +3310,7 @@ static int amhdmitx_probe(struct platform_device *pdev)
 	ret = device_create_file(dev, &dev_attr_attr);
 	ret = device_create_file(dev, &dev_attr_aud_mode);
 	ret = device_create_file(dev, &dev_attr_aud_mute);
+	ret = device_create_file(dev, &dev_attr_vid_mute);
 	ret = device_create_file(dev, &dev_attr_edid);
 	ret = device_create_file(dev, &dev_attr_rawedid);
 	ret = device_create_file(dev, &dev_attr_sink_type);
@@ -3233,6 +3337,8 @@ static int amhdmitx_probe(struct platform_device *pdev)
 	ret = device_create_file(dev, &dev_attr_hdcp_byp);
 	ret = device_create_file(dev, &dev_attr_hdcp_mode);
 	ret = device_create_file(dev, &dev_attr_hdcp_repeater);
+	ret = device_create_file(dev, &dev_attr_hdcp22_type);
+	ret = device_create_file(dev, &dev_attr_hdcp22_base);
 	ret = device_create_file(dev, &dev_attr_hdcp_lstore);
 	ret = device_create_file(dev, &dev_attr_div40);
 	ret = device_create_file(dev, &dev_attr_hdcp_ctrl);
@@ -3264,6 +3370,14 @@ static int amhdmitx_probe(struct platform_device *pdev)
 	if (pdev->dev.of_node) {
 		memset(&hdmitx_device.config_data, 0,
 			sizeof(struct hdmi_config_platform_data));
+/*Get HDMI gpio i2c cmd*/
+	ret = of_property_read_u32(pdev->dev.of_node, "gpio_i2c_en", &val);
+	if (!ret)
+		hdmitx_device.gpio_i2c_enable = val;
+/*Get HDMI gpio i2c cmd*/
+	ret = of_property_read_u32(pdev->dev.of_node, "repeater_tx", &val);
+	if (!ret)
+		hdmitx_device.repeater_tx = val;
 /*Get HDMI gpio i2c cmd*/
 	ret = of_property_read_u32(pdev->dev.of_node, "gpio_i2c_en", &val);
 	if (!ret)
@@ -3375,6 +3489,7 @@ static int amhdmitx_remove(struct platform_device *pdev)
 	device_remove_file(dev, &dev_attr_attr);
 	device_remove_file(dev, &dev_attr_aud_mode);
 	device_remove_file(dev, &dev_attr_aud_mute);
+	device_remove_file(dev, &dev_attr_vid_mute);
 	device_remove_file(dev, &dev_attr_edid);
 	device_remove_file(dev, &dev_attr_rawedid);
 	device_remove_file(dev, &dev_attr_sink_type);
@@ -3400,6 +3515,8 @@ static int amhdmitx_remove(struct platform_device *pdev)
 	device_remove_file(dev, &dev_attr_aud_output_chs);
 	device_remove_file(dev, &dev_attr_div40);
 	device_remove_file(dev, &dev_attr_hdcp_repeater);
+	device_remove_file(dev, &dev_attr_hdcp22_type);
+	device_remove_file(dev, &dev_attr_hdcp22_base);
 
 	cdev_del(&hdmitx_device.cdev);
 

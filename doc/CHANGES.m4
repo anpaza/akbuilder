@@ -79,3 +79,7 @@ ifelse(<<PLATFORM>>, <<X92>>, <<
                   for YUB colors (video) - from 0 to 255
 
     After rebooting the mode is "default".
+
+  * Added kernel module overlay.ko - overlay file system support.
+    More details about overlayfs: https://en.wikipedia.org/wiki/OverlayFS
+    For now it is not used, but I have plans about it.

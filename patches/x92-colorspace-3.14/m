@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PATCH=../../build/patches/linux-3.14/linux-3.14-x92-colorspace.patch
+PATCH=../../build/patches/linux-3.14/007-colorspace.patch
 
 cat > $PATCH << EOF
 This patch adds several new sysfs attribute for the amhdmitx driver.

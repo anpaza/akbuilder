@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PATCH=../../build/X92/kernel/x92-dts.patch
+PATCH=../../build/X92/x92-dts.patch
 
 cat > $PATCH << EOF
 This patch adds the descriptor for the 7-segment LED display of X92.

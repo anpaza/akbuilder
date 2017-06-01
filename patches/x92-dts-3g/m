@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PATCH=../../build/X92/kernel/x92-dts-3g.patch
+PATCH=../../build/X92/x92-dts-3g.patch
 
 cat > $PATCH << EOF
 This patch transforms the device tree for 2Gb RAM models into
