@@ -22,6 +22,7 @@ ifelse(PLATFORM, <<X92>>, <<dnl
         APPS - blinks when writing to USB storage
         CARD - blinks when reading from internal memory
         SETUP - blinks when writing to internal memory
+        HDMI - displays HDMI state
 
     This driver and daemon is available separately from the GitHub:
     https://github.com/anpaza/linux_vfd
