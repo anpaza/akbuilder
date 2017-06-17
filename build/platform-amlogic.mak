@@ -24,20 +24,24 @@ endef
 KERNEL.DTS.DIR = $(KERNEL.OUT)arch/arm64/boot/dts/amlogic/
 
 KERNEL.DIR ?= $(AMLOGIC_BUILDROOT_DIR)/kernel/aml-$(PLATFORM.KERNEL_VER)
-KERNEL.SUFFIX ?= -zap-4
+KERNEL.SUFFIX ?= -zap-5
 KERNEL.ARCH = arm64
 KERNEL.LOADADDR ?= 0x1080000
 include build/kernel.mak
 
+# Include AMLogic-specific drivers into initramfs
+INITRAMFS.MODULES += dwc3.ko dwc_otg.ko
+
 # Tell initramfs builder where the .ko files are located, if it needs them
 INITRAMFS.DEP.dwc3.ko = $(KERNEL.OUT)drivers/usb/dwc3/dwc3.ko
 INITRAMFS.DEP.dwc_otg.ko = $(KERNEL.OUT)drivers/amlogic/usb/dwc_otg/310/dwc_otg.ko
-INITRAMFS.DEP.overlay.ko = $(KERNEL.OUT)fs/overlayfs/overlay.ko
 
 # Make known in-tree kernel modules depend on kernel-module
 $(INITRAMFS.DEP.dwc3.ko) \
-$(INITRAMFS.DEP.dwc_otg.ko) \
-$(INITRAMFS.DEP.overlay.ko): kernel-modules
+$(INITRAMFS.DEP.dwc_otg.ko): kernel-modules
+
+# Include extra modules for all platforms
+include build/platform-modules.mak
 
 # If platform needs the Mali driver, build it
 ifneq ($(PLATFORM.BUILD.KD_MALI),)

@@ -9,8 +9,8 @@ PLATFORM.BUILD.KD_AP6XXX = 1
 PLATFORM.BUILD.INITRAMFS = 1
 PLATFORM.BUILD.BOOTIMG = 1
 
-# We want the following in-tree modules
-INITRAMFS.MODULES ?= mali.ko dwc3.ko dwc_otg.ko dhd.ko overlay.ko
+# Include Mali and Wi-Fi drivers in initramfs
+INITRAMFS.MODULES = mali.ko dhd.ko
 INITRAMFS.EXTRA = $(addprefix $(INITRAMFS.OUT)tree/,vfdd vfdd.ini)
 
 define PLATFORM.BUILD.EXTRA

@@ -174,7 +174,7 @@ service logcat /system/bin/logcat -b system -b events -b main -b crash -K -n 10 
     group log
     seclabel u:r:logcat:s0
 
-service vfdd /vfdd /vfdd.ini
+service vfdd /vfdd /etc/vfdd.ini /vfdd.ini
     class main
     user root
     group root
