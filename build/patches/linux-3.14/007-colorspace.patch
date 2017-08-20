@@ -1,9 +1,9 @@
 This patch adds several new sysfs attribute for the amhdmitx driver.
 
 diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c modified/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
---- original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c	2017-05-27 15:06:14.000000000 +0300
-+++ modified/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c	2017-06-01 10:28:56.574203524 +0300
-@@ -84,7 +84,7 @@
+--- original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c	2017-08-02 07:28:48.000000000 +0300
++++ modified/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c	2017-08-05 23:56:21.000000000 +0300
+@@ -85,7 +85,7 @@
  static void gpio_read_edid(unsigned char *rx_edid);
  static void hdmitx_get_edid(struct hdmitx_dev *hdev);
  static void hdmitx_set_drm_pkt(struct master_display_info_s *data);
@@ -12,7 +12,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c modified/driver
  static int check_fbc_special(unsigned char *edid_dat);
  static int hdcp_tst_sig;
  
-@@ -94,6 +94,8 @@
+@@ -95,6 +95,8 @@
  /* add attr for hdmi output colorspace and colordepth */
  static char fmt_attr[16];
  
@@ -21,7 +21,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c modified/driver
  #ifndef CONFIG_AM_TV_OUTPUT
  /* Fake vinfo */
  const struct vinfo_s vinfo_1080p60hz = {
-@@ -376,12 +378,9 @@
+@@ -402,12 +404,9 @@
  		vic = HDMI_4k2k_24;
  	else if (strncmp(mode, "smpte24hz", strlen("smpte24hz")) == 0)
  		vic = HDMI_4k2k_smpte_24;
@@ -36,7 +36,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c modified/driver
  		vic = HDMI_1080p50;
  
  	if (vic != HDMI_Unkown) {
-@@ -1204,7 +1203,7 @@
+@@ -1214,7 +1213,7 @@
  			SET_AVI_BT2020);
  }
  
@@ -45,7 +45,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c modified/driver
  {
  	struct hdmitx_dev *hdev = &hdmitx_device;
  	unsigned char VEN_HB[3] = {0x81, 0x01};
-@@ -1280,8 +1279,13 @@
+@@ -1308,8 +1307,13 @@
  			hdev->HWOp.SetPacket(HDMI_PACKET_VEND, NULL, NULL);
  		hdev->HWOp.CntlConfig(hdev, CONF_AVI_RGBYCC_INDIC,
  			hdev->para->cs);
@@ -61,7 +61,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c modified/driver
  	}
  }
  
-@@ -2371,6 +2375,107 @@
+@@ -2455,6 +2459,107 @@
  	return pos;
  }
  
@@ -169,7 +169,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c modified/driver
  void hdmi_print(int dbg_lvl, const char *fmt, ...)
  {
  	va_list args;
-@@ -2445,6 +2550,9 @@
+@@ -2530,6 +2635,9 @@
  static DEVICE_ATTR(hdmi_init, S_IRUGO, show_hdmi_init, NULL);
  static DEVICE_ATTR(ready, S_IWUSR | S_IRUGO | S_IWGRP, show_ready, store_ready);
  static DEVICE_ATTR(support_3d, S_IRUGO, show_support_3d, NULL);
@@ -179,7 +179,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c modified/driver
  
  /*****************************
  *	hdmitx display client interface
-@@ -3348,6 +3456,9 @@
+@@ -3438,6 +3546,9 @@
  	ret = device_create_file(dev, &dev_attr_support_3d);
  	ret = device_create_file(dev, &dev_attr_dc_cap);
  	ret = device_create_file(dev, &dev_attr_valid_mode);
@@ -189,7 +189,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c modified/driver
  
  #ifdef CONFIG_AM_TV_OUTPUT
  	vout_register_client(&hdmitx_notifier_nb_v);
-@@ -3517,6 +3628,9 @@
+@@ -3616,6 +3727,9 @@
  	device_remove_file(dev, &dev_attr_hdcp_repeater);
  	device_remove_file(dev, &dev_attr_hdcp22_type);
  	device_remove_file(dev, &dev_attr_hdcp22_base);
@@ -200,8 +200,8 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c modified/driver
  	cdev_del(&hdmitx_device.cdev);
  
 diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c modified/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c
---- original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c	2017-05-15 16:45:51.000000000 +0300
-+++ modified/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c	2017-05-28 12:58:40.000000000 +0300
+--- original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c	2017-08-02 07:28:48.000000000 +0300
++++ modified/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c	2017-08-06 00:23:24.378618637 +0300
 @@ -33,7 +33,9 @@
  #include <linux/amlogic/hdmi_tx/hdmi_tx_module.h>
  #include <linux/amlogic/hdmi_tx/hdmi_tx_compliance.h>
@@ -213,7 +213,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c modified/drive
  static void hdmitx_set_spd_info(struct hdmitx_dev *hdev);
  static void hdmi_set_vend_spec_infofram(struct hdmitx_dev *hdev,
  	enum hdmi_vic VideoCode);
-@@ -588,11 +590,6 @@
+@@ -874,11 +876,6 @@
  		return 0;
  }
  
@@ -225,7 +225,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c modified/drive
  int hdmitx_set_display(struct hdmitx_dev *hdev, enum hdmi_vic VideoCode)
  {
  	struct hdmitx_vidpara *param = NULL;
-@@ -618,40 +615,50 @@
+@@ -904,43 +901,55 @@
  	hdev->cur_video_param = param;
  	if (param) {
  		param->color = param->color_prefer;
@@ -242,6 +242,23 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c modified/drive
 +			param->color = COLORSPACE_YUV422;
 +			break;
 +		default:
++			param->color = COLORSPACE_RGB444;
++			pr_info("hdmitx: rx edid only support RGB format\n");
++			break;
++		}
++		/* For Y420 modes */
++		switch (VideoCode) {
++		case HDMI_3840x2160p50_16x9_Y420:
++		case HDMI_3840x2160p60_16x9_Y420:
++		case HDMI_4096x2160p50_256x135_Y420:
++		case HDMI_4096x2160p60_256x135_Y420:
++			param->color = COLORSPACE_YUV420;
++			break;
++		default:
++			break;
++		}
++
++		if (VideoCode >= HDMITX_VESA_OFFSET) {
  			param->color = COLORSPACE_RGB444;
 -		} else {
 -			/* HDMI CT 7-24 Pixel Encoding
@@ -273,20 +290,11 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c modified/drive
 -				hdev->para->cs = hdev->cur_video_param->color;
 -				pr_info("hdmitx: rx edid only support RGB format\n");
 -			}
--
-+			pr_info("hdmitx: rx edid only support RGB format\n");
-+			break;
-+		}
-+		/* For Y420 modes */
-+		switch (VideoCode) {
-+		case HDMI_3840x2160p50_16x9_Y420:
-+		case HDMI_3840x2160p60_16x9_Y420:
-+		case HDMI_4096x2160p50_256x135_Y420:
-+		case HDMI_4096x2160p60_256x135_Y420:
-+			param->color = COLORSPACE_YUV420;
-+			break;
-+		default:
-+			break;
+-			if (VideoCode >= HDMITX_VESA_OFFSET) {
+-				hdev->para->cs = COLORSPACE_RGB444;
+-				pr_info("hdmitx: VESA only support RGB format\n");
+-			}
++			pr_info("hdmitx: VESA only support RGB format\n");
  		}
 +
 +		if (hdmi_force_color_depth == 24)
@@ -309,9 +317,9 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c modified/drive
  			/* HDMI CT 7-33 DVI Sink, no HDMI VSDB nor any
  			 * other VSDB, No GB or DI expected
 diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c modified/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c
---- original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c	2017-05-15 16:45:51.000000000 +0300
-+++ modified/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c	2017-05-28 17:10:26.000000000 +0300
-@@ -111,8 +111,6 @@
+--- original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c	2017-08-02 07:28:48.000000000 +0300
++++ modified/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c	2017-08-05 23:56:21.000000000 +0300
+@@ -112,8 +112,6 @@
  static unsigned delay_flag;
  static unsigned long serial_reg_val = 0x1;
  static unsigned char i2s_to_spdif_flag = 1;
@@ -320,7 +328,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c modified/drive
  static unsigned char new_reset_sequence_flag = 1;
  static unsigned char power_mode = 1;
  static unsigned char power_off_vdac_flag;
-@@ -124,6 +122,8 @@
+@@ -125,6 +123,8 @@
  
  static unsigned char cur_vout_index = 1; /* CONFIG_AM_TV_OUTPUT2 */
  
@@ -329,7 +337,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c modified/drive
  static void hdmitx_set_packet(int type, unsigned char *DB, unsigned char *HB);
  static void hdmitx_setaudioinfoframe(unsigned char *AUD_DB,
  	unsigned char *CHAN_STAT_BUF);
-@@ -1914,6 +1914,12 @@
+@@ -2067,6 +2067,12 @@
  	pr_info("hdmirx version is %s\n",
  		(rx_ver == 1) ? "2.0" : "1.4 or below");
  
@@ -342,7 +350,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c modified/drive
  	switch (hdev->cur_VIC) {
  	case HDMI_3840x2160p50_16x9:
  	case HDMI_3840x2160p60_16x9:
-@@ -1955,19 +1961,6 @@
+@@ -2111,19 +2117,6 @@
  	set_tmds_clk_div40(hdev->para->tmds_clk_div40);
  	scdc_config(hdev);
  
@@ -362,7 +370,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c modified/drive
  	hdmitx_set_pll(hdev);
  	/*hdmitx_set_phy(hdev);*/
  	if (hdev->flag_3dfp)
-@@ -2017,7 +2010,7 @@
+@@ -2173,7 +2166,7 @@
  	hd_write_reg(P_VPU_HDMI_FMT_CTRL, (((TX_INPUT_COLOR_FORMAT ==
  		COLORSPACE_YUV420) ? 2 : 0)  << 0) | (2 << 2) |
  			(0 << 4) | /* [4]dith_en: disable dithering */
@@ -371,7 +379,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c modified/drive
  			(0 << 6)); /* [ 9: 6] hdmi_dith10_cntl. */
  	if (hdev->para->cs == COLORSPACE_YUV420) {
  		hd_set_reg_bits(P_VPU_HDMI_FMT_CTRL, 2, 0, 2);
-@@ -2117,6 +2110,10 @@
+@@ -2273,6 +2266,10 @@
  	mdelay(1);
  	hdmitx_set_reg_bits(HDMITX_DWC_FC_INVIDCONF, 1, 3, 1);
  
@@ -382,7 +390,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c modified/drive
  	return 0;
  }
  
-@@ -2744,7 +2741,7 @@
+@@ -2904,7 +2901,7 @@
  {
  	hdmi_print(INF, "------------------\nHdmitx driver version: ");
  	hdmi_print(INF, "%s\nSerial %x\nColor Depth %d\n", HDMITX_VER,
@@ -391,7 +399,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c modified/drive
  	hdmi_print(INF, "current vout index %d\n", cur_vout_index);
  	hdmi_print(INF, "reset sequence %d\n", new_reset_sequence_flag);
  	hdmi_print(INF, "power mode %d\n", power_mode);
-@@ -3179,20 +3176,22 @@
+@@ -3339,20 +3336,22 @@
  		return;
  	} else if (tmpbuf[0] == 'c') {
  		if (tmpbuf[1] == 'd') {
@@ -424,7 +432,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c modified/drive
  		}
  	}
  	} else if (strncmp(tmpbuf, "i2s", 2) == 0) {
-@@ -3919,9 +3918,11 @@
+@@ -4083,9 +4082,11 @@
  		hdmitx_set_reg_bits(HDMITX_DWC_FC_AVICONF0, 0, 7, 1);
  		break;
  	case CONF_AVI_Q01:
@@ -436,7 +444,7 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c modified/drive
  		hdmitx_set_reg_bits(HDMITX_DWC_FC_AVICONF3, argv, 2, 2);
  		break;
  	default:
-@@ -4243,6 +4244,8 @@
+@@ -4407,6 +4408,8 @@
  	unsigned char   default_phase = 0;
  	unsigned tmp = 0;
  
@@ -446,9 +454,9 @@ diff -ur original/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c modified/drive
  
  	/* Enable clocks and bring out of reset */
 diff -ur original/include/linux/amlogic/hdmi_tx/hdmi_tx_module.h modified/include/linux/amlogic/hdmi_tx/hdmi_tx_module.h
---- original/include/linux/amlogic/hdmi_tx/hdmi_tx_module.h	2017-05-15 16:45:54.000000000 +0300
-+++ modified/include/linux/amlogic/hdmi_tx/hdmi_tx_module.h	2017-05-28 14:11:32.000000000 +0300
-@@ -356,6 +356,7 @@
+--- original/include/linux/amlogic/hdmi_tx/hdmi_tx_module.h	2017-08-02 07:28:48.000000000 +0300
++++ modified/include/linux/amlogic/hdmi_tx/hdmi_tx_module.h	2017-08-05 23:56:21.000000000 +0300
+@@ -361,6 +361,7 @@
  	#define RGB_RANGE_LIM		1
  	#define RGB_RANGE_FUL		2
  	#define RGB_RANGE_RSVD		3
@@ -456,7 +464,7 @@ diff -ur original/include/linux/amlogic/hdmi_tx/hdmi_tx_module.h modified/includ
  #define CONF_AVI_YQ01		(CMD_CONF_OFFSET + 0X2000 + 0x03)
  	#define YCC_RANGE_LIM		0
  	#define YCC_RANGE_FUL		1
-@@ -425,6 +426,9 @@
+@@ -433,6 +434,9 @@
   **********************************************************************/
  extern void hdmitx_init_parameters(struct hdmitx_info *info);
  extern enum hdmi_vic hdmitx_edid_vic_tab_map_vic(const char *disp_mode);
@@ -466,7 +474,7 @@ diff -ur original/include/linux/amlogic/hdmi_tx/hdmi_tx_module.h modified/includ
  
  extern int hdmitx_edid_parse(struct hdmitx_dev *hdmitx_device);
  extern int check_dvi_hdmi_edid_valid(unsigned char *buf);
-@@ -508,8 +512,6 @@
+@@ -516,8 +520,6 @@
  
  extern void hdmi_set_audio_para(int para);
  

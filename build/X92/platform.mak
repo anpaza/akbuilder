@@ -11,14 +11,20 @@ PLATFORM.BUILD.BOOTIMG = 1
 
 # Include Mali and Wi-Fi drivers in initramfs
 INITRAMFS.MODULES = mali.ko dhd.ko
-INITRAMFS.EXTRA = $(addprefix $(INITRAMFS.OUT)tree/,vfdd vfdd.ini)
+INITRAMFS.EXTRA = $(addprefix $(INITRAMFS.OUT)tree/,vfdd vfdd.ini afrd afrd.ini)
 
 define PLATFORM.BUILD.EXTRA
 # The directory for the linux_vfd project (https://github.com/anpaza/linux_vfd)
-LINUX_VFD_DIR ?= ../linux_vfd
+LINUX_VFD_DIR ?= ../linux_vfd/
 # and we want the 32-bit ARM daemon for LCD display on initramfs
 VFDD_ARCH = armeabi-v7a
 include build/vfdd.mak
+
+# The directory for the automatic framerate daemon (https://github.com/anpaza/afrd)
+AFRD_DIR ?= ../afrd/
+# and we want the 32-bit ARM daemon on initramfs
+AFRD_ARCH = armeabi-v7a
+include build/afrd.mak
 endef
 
 # Common definitions for all AMLogic-based platforms
@@ -38,7 +44,15 @@ $(INITRAMFS.OUT)tree/vfdd: $(VFDD_BIN) $(INITRAMFS.OUT).stamp.copy
 $(INITRAMFS.OUT)tree/vfdd.ini: $(VFDD_DIR)vfdd.ini $(INITRAMFS.OUT).stamp.copy
 	$(call CP,$<,$@)
 
+# How afrd files gets copied to initramfs build dir
+$(INITRAMFS.OUT)tree/afrd: $(AFRD_BIN) $(INITRAMFS.OUT).stamp.copy
+	$(call CP,$<,$@)
+
+$(INITRAMFS.OUT)tree/afrd.ini: $(AFRD_DIR)afrd.ini $(INITRAMFS.OUT).stamp.copy
+	$(call CP,$<,$@)
+
 .PHONY: deploy
+HELP += $(NL)deploy - Deploy the final kernel files for $(PLATFORM)
 
 define DEPLOY
 	rm -f $(OUT){aml_autoscript,kernel.img,dtb.img}

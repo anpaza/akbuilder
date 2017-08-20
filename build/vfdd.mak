@@ -5,7 +5,7 @@ ifndef VFDD_ARCH
 $(error Please define VFDD_ARCH to the architecture of your vfdd)
 endif
 
-VFDD_DIR ?= $(LINUX_VFD_DIR)/vfdd/
+VFDD_DIR ?= $(LINUX_VFD_DIR)vfdd/
 VFDD_BIN ?= $(VFDD_DIR)libs/$(VFDD_ARCH)/vfdd
 
 # Try to find out NDK_ROOT ourselves

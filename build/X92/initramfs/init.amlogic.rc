@@ -178,3 +178,8 @@ service vfdd /vfdd /etc/vfdd.ini /vfdd.ini
     class main
     user root
     group root
+
+service afrd /afrd /etc/afrd.ini /afrd.ini
+    class main
+    user root
+    group root

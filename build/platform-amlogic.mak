@@ -24,7 +24,7 @@ endef
 KERNEL.DTS.DIR = $(KERNEL.OUT)arch/arm64/boot/dts/amlogic/
 
 KERNEL.DIR ?= $(AMLOGIC_BUILDROOT_DIR)/kernel/aml-$(PLATFORM.KERNEL_VER)
-KERNEL.SUFFIX ?= -zap-5
+KERNEL.SUFFIX ?= -zap-6
 KERNEL.ARCH = arm64
 KERNEL.LOADADDR ?= 0x1080000
 include build/kernel.mak

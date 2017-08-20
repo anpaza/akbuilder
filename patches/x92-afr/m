@@ -1,0 +1,10 @@
+#!/bin/sh
+
+PATCH=../../build/patches/linux-3.14/011-afr.patch
+
+cat > $PATCH << EOF
+A fix related to automated frame rate.
+
+EOF
+
+diff -ur original modified >> $PATCH

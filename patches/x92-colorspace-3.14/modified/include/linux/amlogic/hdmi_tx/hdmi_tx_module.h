@@ -51,13 +51,14 @@ struct rx_audiocap {
 enum hd_ctrl {
 	VID_EN, VID_DIS, AUD_EN, AUD_DIS, EDID_EN, EDID_DIS, HDCP_EN, HDCP_DIS,
 };
-
+#define VESA_MAX_TIMING 64
 struct rx_cap {
 	unsigned int native_Mode;
 	/*video*/
 	unsigned int VIC[VIC_MAX_NUM];
 	unsigned int VIC_count;
 	unsigned int native_VIC;
+	enum hdmi_vic vesa_timing[VESA_MAX_TIMING]; /* Max 64 */
 	/*audio*/
 	struct rx_audiocap RxAudioCap[AUD_MAX_NUM];
 	unsigned char AUD_count;
@@ -87,7 +88,9 @@ struct rx_cap {
 	unsigned char hdr_lum_max;
 	unsigned char hdr_lum_avg;
 	unsigned char hdr_lum_min;
-	unsigned char ReceiverBrandName[4];
+	unsigned char IDManufacturerName[4];
+	unsigned char IDProductCode[2];
+	unsigned char IDSerialNumber[4];
 	unsigned char ReceiverProductName[16];
 	unsigned char manufacture_week;
 	unsigned char manufacture_year;
@@ -279,6 +282,7 @@ struct hdmitx_dev {
 	struct clk *clk_phy;
 	struct clk *clk_vid;
 	unsigned int gpio_i2c_enable;
+	unsigned int repeater_tx;
 	/* 0.1% clock shift, 1080p60hz->59.94hz */
 	unsigned int frac_rate_policy;
 	unsigned int rxsense_policy;
@@ -286,6 +290,7 @@ struct hdmitx_dev {
 	/* 0: default setting  1:ch0/1  2:ch2/3  3:ch4/5  4:ch6/7 */
 	unsigned int aud_output_ch;
 	unsigned int hdr_src_feature;
+	unsigned int dv_src_feature;
 	unsigned int flag_3dfp:1;
 	unsigned int flag_3dtb:1;
 	unsigned int flag_3dss:1;
@@ -361,6 +366,9 @@ struct hdmitx_dev {
 	#define YCC_RANGE_LIM		0
 	#define YCC_RANGE_FUL		1
 	#define YCC_RANGE_RSVD		2
+#define CONF_VIDEO_MUTE_OP      (CMD_CONF_OFFSET + 0x1000 + 0x04)
+#define VIDEO_MUTE          0x1
+#define VIDEO_UNMUTE        0x2
 
 /***********************************************************************
  *             MISC control, hpd, hpll //CntlMisc
@@ -531,12 +539,14 @@ extern void hdmitx_hpd_plugin_handler(struct work_struct *work);
 extern void hdmitx_hpd_plugout_handler(struct work_struct *work);
 extern void hdmitx_internal_intr_handler(struct work_struct *work);
 extern unsigned char hdmi_audio_off_flag;
+extern unsigned int get_hdcp22_base(void);
 /*
  * hdmitx_audio_mute_op() is used by external driver call
  * flag: 0: audio off   1: audio_on
  *       2: for EDID auto mode
  */
 extern void hdmitx_audio_mute_op(unsigned int flag);
+extern void hdmitx_video_mute_op(unsigned int flag);
 
 #define HDMITX_HWCMD_MUX_HPD_IF_PIN_HIGH       0x3
 #define HDMITX_HWCMD_TURNOFF_HDMIHW           0x4

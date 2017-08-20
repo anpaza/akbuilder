@@ -24,7 +24,7 @@ ifelse(PLATFORM, <<X92>>, <<dnl
         SETUP - blinks when writing to internal memory
         HDMI - displays HDMI state
 
-    This driver and daemon is available separately from the GitHub:
+    The source code for driver and daemon is available separately from the GitHub:
     https://github.com/anpaza/linux_vfd
 
     The configuration file for vfdd daemon is /vfdd.ini. If you want to customize it,
@@ -98,3 +98,18 @@ ifelse(PLATFORM, <<X92>>, <<dnl
         insmod /lib/modules/`uname -r`/cp210x.ko (or pl2303.ko etc)
 
   * Support for hard disks in Windows Dynamic Disk format has been enabled in this kernel.
+    Details about using Dynamic Disks in Android:
+    https://translate.google.com/translate?hl=ru&sl=ru&tl=en&u=https%3A%2F%2F4pda.ru%2Fforum%2Findex.php%3Fshowtopic%3D773971%26view%3Dfindpost%26p%3D62595635
+
+  * The hardware noise reduction is disabled by default, since it results in the so-called
+    "ghost/smoky effect" on dark scenes (/sys/module/di/parameters/nr2_en=0).
+
+  * Added automatic framerate when using the hardware video decoder. To implement this
+    we introduce a new daemon named afrd which runs in background and reacts to kernel
+    broadcasts about starting and finishing video play.
+
+    The configuration file for afrd is /afrd.ini, if you want to change it, copy it first
+    to /etc/afrd.ini; the daemon will prefer it over /afrd.ini if it exists.
+
+    The source code for automatic framerate daemon is available separately from the GitHub:
+    https://github.com/anpaza/afrd

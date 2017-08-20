@@ -1,0 +1,10 @@
+#!/bin/sh
+
+PATCH=../../build/patches/linux-3.14/010-nroff.patch
+
+cat > $PATCH << EOF
+Disable Noise Reduction by default.
+
+EOF
+
+diff -ur original modified >> $PATCH

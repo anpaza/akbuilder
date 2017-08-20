@@ -139,3 +139,4 @@ tvservice                                   u:object_r:tvserver_service:s0
 media.screenmediasource                     u:object_r:screenmediasource_service:s0
 tee_supplicant                              u:object_r:tee_service:s0
 vfdd                                        u:object_r:vfdd_service:s0
+afrd                                        u:object_r:afrd_service:s0

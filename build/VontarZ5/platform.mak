@@ -20,6 +20,8 @@ $(KERNEL.DTS.DIR)gxm_z5_2g.dts: $(PLATFORM.DIR)z5-dts.patch $(KERNEL.DTS.DIR)gxm
 	$(call APPLY.PATCH,$<,,-o $@ $(word 2,$^))
 
 .PHONY: deploy
+HELP += $(NL)deploy - Deploy the final kernel files for $(PLATFORM)
+
 deploy:
 	rm -f $(OUT){aml_autoscript,kernel.img,dtb.img}
 	+$(MAKE) bootfiles BOOTIMG.FILE=kernel.img
