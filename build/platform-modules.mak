@@ -1,5 +1,6 @@
 # Common kernel modules for all platforms
-INITRAMFS.MODULES += overlay.ko ch341.ko cp210x.ko ftdi_sio.ko pl2303.ko
+INITRAMFS.MODULES += ch341.ko cp210x.ko ftdi_sio.ko pl2303.ko
+# overlay.ko
 
 # Tell initramfs builder where the .ko files are located, if it needs them
 INITRAMFS.DEP.overlay.ko = $(KERNEL.OUT)fs/overlayfs/overlay.ko

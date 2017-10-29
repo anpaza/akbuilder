@@ -12,7 +12,7 @@ For S905/S912 CPUs you need a fresh snapshot of AMLogic's "OpenLinux"
 GIT repository (http://openlinux.amlogic.com). The latest snapshot
 as of today can be found here:
 
-    http://openlinux.amlogic.com:8000/download/ARM/filesystem/Linux_BSP/buildroot_openlinux_kernel_3.14_fbdev_20170527.tar.gz
+    http://openlinux.amlogic.com:8000/download/ARM/filesystem/Linux_BSP/buildroot_openlinux_kernel_3.14_wayland_20170630.tar.gz
 
 Unpack it in same directory where akbuilder resides (you can override it
 by specifying AMLOGIC_BUILDROOT_DIR= on make command line).
@@ -25,7 +25,21 @@ contains the LCD display driver and controlling daemon for X92, from here:
 Place "linux_vfd" directory in same directory where akbuilder resides
 (you can override it by specifying LINUX_VFD_DIR= on make command line).
 
-To start building, just run:
+Also, you have to download the automatic framerate daemon from here:
+
+    https://github.com/anpaza/afrd
+
+Place it alongside the linux_vfd and akbuilder subdirectories.
+
+The final directory structure should look like this:
+
+    [ . ]
+    +---[ afrd ]
+    +---[ akbuilder ]
+    +---[ buildroot_openlinux ]
+    +---[ linux_vfd ]
+
+To start building, just run in akbuilder directory:
 
     make PLATFORM=... bootimg
 

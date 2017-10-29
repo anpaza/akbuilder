@@ -1,0 +1,347 @@
+Change CONFIG_DHD_USE_STATIC_BUF to CONFIG_BCMDHD_USE_STATIC_BUF everywhere through
+the Broadcom AP6xxx driver as it has been changed in kernel.
+
+diff -ur original/dhd_gpio.c modified/dhd_gpio.c
+--- original/dhd_gpio.c	2017-10-07 14:19:50.000000000 +0300
++++ modified/dhd_gpio.c	2017-10-07 14:35:15.334266248 +0300
+@@ -132,7 +132,7 @@
+ 	return err;
+ }
+ 
+-#ifdef CONFIG_DHD_USE_STATIC_BUF
++#ifdef CONFIG_BCMDHD_USE_STATIC_BUF
+ extern void *bcmdhd_mem_prealloc(int section, unsigned long size);
+ void* bcm_wlan_prealloc(int section, unsigned long size)
+ {
+@@ -186,7 +186,7 @@
+ 	dhd_wlan_control.set_power = bcm_wlan_set_power;
+ 	dhd_wlan_control.set_carddetect = bcm_wlan_set_carddetect;
+ 	dhd_wlan_control.get_mac_addr = bcm_wlan_get_mac_address;
+-#ifdef CONFIG_DHD_USE_STATIC_BUF
++#ifdef CONFIG_BCMDHD_USE_STATIC_BUF
+ 	dhd_wlan_control.mem_prealloc = bcm_wlan_prealloc;
+ #endif
+ 	dhd_wlan_control.get_country_code = bcm_wlan_get_country_code;
+diff -ur original/dhd.h modified/dhd.h
+--- original/dhd.h	2017-05-15 16:45:37.000000000 +0300
++++ modified/dhd.h	2017-10-07 14:35:02.292207409 +0300
+@@ -1072,13 +1072,13 @@
+ 
+ int dhd_process_cid_mac(dhd_pub_t *dhdp, bool prepost);
+ 
+-#if defined(CONFIG_DHD_USE_STATIC_BUF)
++#if defined(CONFIG_BCMDHD_USE_STATIC_BUF)
+ #define DHD_OS_PREALLOC(dhdpub, section, size) dhd_os_prealloc(dhdpub, section, size, FALSE)
+ #define DHD_OS_PREFREE(dhdpub, addr, size) dhd_os_prefree(dhdpub, addr, size)
+ #else
+ #define DHD_OS_PREALLOC(dhdpub, section, size) MALLOC(dhdpub->osh, size)
+ #define DHD_OS_PREFREE(dhdpub, addr, size) MFREE(dhdpub->osh, addr, size)
+-#endif /* defined(CONFIG_DHD_USE_STATIC_BUF) */
++#endif /* defined(CONFIG_BCMDHD_USE_STATIC_BUF) */
+ 
+ 
+ #define dhd_add_flowid(pub, ifidx, ac_prio, ea, flowid)  do {} while (0)
+diff -ur original/dhd_msgbuf.c modified/dhd_msgbuf.c
+--- original/dhd_msgbuf.c	2017-05-15 16:45:37.000000000 +0300
++++ modified/dhd_msgbuf.c	2017-10-07 14:35:12.124251746 +0300
+@@ -499,11 +499,11 @@
+ 
+ #define PKTID_AVAIL(map)                 dhd_pktid_map_avail_cnt(map)
+ 
+-#if defined(CONFIG_DHD_USE_STATIC_BUF) && defined(DHD_USE_STATIC_FLOWRING)
++#if defined(CONFIG_BCMDHD_USE_STATIC_BUF) && defined(DHD_USE_STATIC_FLOWRING)
+ #define FLOWRING_NAME	"h2dflr"
+ #define RING_IS_FLOWRING(ring) \
+ 	((strncmp(ring->name, FLOWRING_NAME, sizeof(FLOWRING_NAME))) == (0))
+-#endif /* CONFIG_DHD_USE_STATIC_BUF && DHD_USE_STATIC_FLOWRING */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF && DHD_USE_STATIC_FLOWRING */
+ 
+ /*
+  * +---------------------------------------------------------------------------+
+@@ -889,10 +889,10 @@
+ 	return 0;
+ 
+ fail:
+-#ifndef CONFIG_DHD_USE_STATIC_BUF
++#ifndef CONFIG_BCMDHD_USE_STATIC_BUF
+ 	if (prot != NULL)
+ 		dhd_prot_detach(dhd);
+-#endif /* CONFIG_DHD_USE_STATIC_BUF */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF */
+ 	return BCME_NOMEM;
+ }
+ 
+@@ -1076,9 +1076,9 @@
+ 
+ 		NATIVE_TO_PKTID_FINI(dhd->prot->pktid_map_handle);
+ 
+-#ifndef CONFIG_DHD_USE_STATIC_BUF
++#ifndef CONFIG_BCMDHD_USE_STATIC_BUF
+ 		MFREE(dhd->osh, dhd->prot, sizeof(dhd_prot_t));
+-#endif /* CONFIG_DHD_USE_STATIC_BUF */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF */
+ 
+ 		dhd->prot = NULL;
+ 	}
+@@ -3214,13 +3214,13 @@
+ 	size = max_item * len_item;
+ 
+ 	/* Ring Memmory allocation */
+-#if defined(CONFIG_DHD_USE_STATIC_BUF) && defined(DHD_USE_STATIC_FLOWRING)
++#if defined(CONFIG_BCMDHD_USE_STATIC_BUF) && defined(DHD_USE_STATIC_FLOWRING)
+ 	if (RING_IS_FLOWRING(ring)) {
+ 		ring->ring_base.va = DMA_ALLOC_CONSISTENT_STATIC(prot->osh,
+ 			size, DMA_ALIGN_LEN, &alloced, &ring->ring_base.pa,
+ 			&ring->ring_base.dmah, ringid);
+ 	} else
+-#endif /* CONFIG_DHD_USE_STATIC_BUF && DHD_USE_STATIC_FLOWRING */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF && DHD_USE_STATIC_FLOWRING */
+ 	ring->ring_base.va = DMA_ALLOC_CONSISTENT(prot->osh, size, DMA_ALIGN_LEN,
+ 		&alloced, &ring->ring_base.pa, &ring->ring_base.dmah);
+ 
+@@ -3313,12 +3313,12 @@
+ 	size = ring->ringmem->max_item * ring->ringmem->len_items;
+ 	/* Free up ring */
+ 	if (ring->ring_base.va) {
+-#if defined(CONFIG_DHD_USE_STATIC_BUF) && defined(DHD_USE_STATIC_FLOWRING)
++#if defined(CONFIG_BCMDHD_USE_STATIC_BUF) && defined(DHD_USE_STATIC_FLOWRING)
+ 		if (RING_IS_FLOWRING(ring)) {
+ 			DMA_FREE_CONSISTENT_STATIC(prot->osh, ring->ring_base.va, size,
+ 				ring->ring_base.pa, ring->ring_base.dmah, ring->idx);
+ 		} else
+-#endif /* CONFIG_DHD_USE_STATIC_BUF && DHD_USE_STATIC_FLOWRING */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF && DHD_USE_STATIC_FLOWRING */
+ 		DMA_FREE_CONSISTENT(prot->osh, ring->ring_base.va, size, ring->ring_base.pa,
+ 			ring->ring_base.dmah);
+ 		ring->ring_base.va = NULL;
+diff -ur original/dhd_sdio.c modified/dhd_sdio.c
+--- original/dhd_sdio.c	2017-08-02 07:28:38.000000000 +0300
++++ modified/dhd_sdio.c	2017-10-07 14:35:05.599222267 +0300
+@@ -8555,7 +8555,7 @@
+ 		return;
+ 
+ 	if (bus->rxbuf) {
+-#ifndef CONFIG_DHD_USE_STATIC_BUF
++#ifndef CONFIG_BCMDHD_USE_STATIC_BUF
+ 		MFREE(osh, bus->rxbuf, bus->rxblen);
+ #endif
+ 		bus->rxctl = bus->rxbuf = NULL;
+@@ -8563,7 +8563,7 @@
+ 	}
+ 
+ 	if (bus->databuf) {
+-#ifndef CONFIG_DHD_USE_STATIC_BUF
++#ifndef CONFIG_BCMDHD_USE_STATIC_BUF
+ 		MFREE(osh, bus->databuf, MAX_DATA_BUF);
+ #endif
+ 		bus->databuf = NULL;
+diff -ur original/include/linux_osl.h modified/include/linux_osl.h
+--- original/include/linux_osl.h	2017-05-15 16:45:37.000000000 +0300
++++ modified/include/linux_osl.h	2017-10-07 14:35:18.477280448 +0300
+@@ -151,7 +151,7 @@
+ 	osl_dma_free_consistent((osh), (void*)(va), (size), (pa))
+ 
+ #if defined(BCMPCIE)
+-#if defined(CONFIG_DHD_USE_STATIC_BUF) && defined(DHD_USE_STATIC_FLOWRING)
++#if defined(CONFIG_BCMDHD_USE_STATIC_BUF) && defined(DHD_USE_STATIC_FLOWRING)
+ #define	DMA_ALLOC_CONSISTENT_STATIC(osh, size, align, tot, pap, dmah, idx) \
+ 	osl_dma_alloc_consistent_static((osh), (size), (align), (tot), (pap), (idx))
+ #define	DMA_FREE_CONSISTENT_STATIC(osh, va, size, pa, dmah, idx) \
+@@ -161,7 +161,7 @@
+ 	uint *tot, dmaaddr_t *pap, uint16 idx);
+ extern void osl_dma_free_consistent_static(osl_t *osh, void *va, uint size, dmaaddr_t pa,
+ 	uint16 idx);
+-#endif /* CONFIG_DHD_USE_STATIC_BUF && DHD_USE_STATIC_FLOWRING */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF && DHD_USE_STATIC_FLOWRING */
+ #endif /* BCMPCIE */
+ 
+ extern uint osl_dma_consistent_align(void);
+@@ -349,13 +349,13 @@
+ #define PKTLIST_DUMP(osh, buf)		BCM_REFERENCE(osh)
+ #define PKTDBG_TRACE(osh, pkt, bit)	BCM_REFERENCE(osh)
+ #define	PKTFREE(osh, skb, send)		osl_pktfree((osh), (skb), (send))
+-#ifdef CONFIG_DHD_USE_STATIC_BUF
++#ifdef CONFIG_BCMDHD_USE_STATIC_BUF
+ #define	PKTGET_STATIC(osh, len, send)		osl_pktget_static((osh), (len))
+ #define	PKTFREE_STATIC(osh, skb, send)		osl_pktfree_static((osh), (skb), (send))
+ #else
+ #define	PKTGET_STATIC	PKTGET
+ #define	PKTFREE_STATIC	PKTFREE
+-#endif /* CONFIG_DHD_USE_STATIC_BUF */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF */
+ #define	PKTDATA(osh, skb)		({BCM_REFERENCE(osh); (((struct sk_buff*)(skb))->data);})
+ #define	PKTLEN(osh, skb)		({BCM_REFERENCE(osh); (((struct sk_buff*)(skb))->len);})
+ #define PKTHEADROOM(osh, skb)		(PKTDATA(osh, skb)-(((struct sk_buff*)(skb))->head))
+diff -ur original/linux_osl.c modified/linux_osl.c
+--- original/linux_osl.c	2017-08-02 07:28:38.000000000 +0300
++++ modified/linux_osl.c	2017-10-07 14:34:54.722173579 +0300
+@@ -58,9 +58,9 @@
+ #endif
+ 
+ #if defined(BCMPCIE)
+-#if defined(CONFIG_DHD_USE_STATIC_BUF) && defined(DHD_USE_STATIC_FLOWRING)
++#if defined(CONFIG_BCMDHD_USE_STATIC_BUF) && defined(DHD_USE_STATIC_FLOWRING)
+ #include <bcmpcie.h>
+-#endif /* CONFIG_DHD_USE_STATIC_BUF && DHD_USE_STATIC_FLOWRING */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF && DHD_USE_STATIC_FLOWRING */
+ #endif /* BCMPCIE */
+ 
+ #define PCI_CFG_RETRY		10
+@@ -69,7 +69,7 @@
+ #define BCM_MEM_FILENAME_LEN	24		/* Mem. filename length */
+ #define DUMPBUFSZ 1024
+ 
+-#ifdef CONFIG_DHD_USE_STATIC_BUF
++#ifdef CONFIG_BCMDHD_USE_STATIC_BUF
+ #define DHD_SKB_HDRSIZE		336
+ #define DHD_SKB_1PAGE_BUFSIZE	((PAGE_SIZE*1)-DHD_SKB_HDRSIZE)
+ #define DHD_SKB_2PAGE_BUFSIZE	((PAGE_SIZE*2)-DHD_SKB_HDRSIZE)
+@@ -123,7 +123,7 @@
+ #endif /* BCMPCIE && DHD_USE_STATIC_FLOWRING */
+ 
+ void* wifi_platform_prealloc(void *adapter, int section, unsigned long size);
+-#endif /* CONFIG_DHD_USE_STATIC_BUF */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF */
+ 
+ typedef struct bcm_mem_link {
+ 	struct bcm_mem_link *prev;
+@@ -413,7 +413,7 @@
+ 
+ int osl_static_mem_init(osl_t *osh, void *adapter)
+ {
+-#ifdef CONFIG_DHD_USE_STATIC_BUF
++#ifdef CONFIG_BCMDHD_USE_STATIC_BUF
+ 	if (!bcm_static_buf && adapter) {
+ 		if (!(bcm_static_buf = (bcm_static_buf_t *)wifi_platform_prealloc(adapter,
+ 			3, STATIC_BUF_SIZE + STATIC_BUF_TOTAL_LEN))) {
+@@ -478,7 +478,7 @@
+ 		spin_lock_init(&bcm_static_flowring->flowring_lock);
+ 	}
+ #endif /* BCMPCIE && DHD_USE_STATIC_FLOWRING */
+-#endif /* CONFIG_DHD_USE_STATIC_BUF */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF */
+ 
+ 	return 0;
+ }
+@@ -516,7 +516,7 @@
+ 
+ int osl_static_mem_deinit(osl_t *osh, void *adapter)
+ {
+-#ifdef CONFIG_DHD_USE_STATIC_BUF
++#ifdef CONFIG_BCMDHD_USE_STATIC_BUF
+ 	if (bcm_static_buf) {
+ 		bcm_static_buf = 0;
+ 	}
+@@ -530,7 +530,7 @@
+ 		bcm_static_flowring = 0;
+ 	}
+ #endif /* BCMPCIE && DHD_USE_STATIC_FLOWRING */
+-#endif /* CONFIG_DHD_USE_STATIC_BUF */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF */
+ 	return 0;
+ }
+ 
+@@ -690,7 +690,7 @@
+ 	if ((osh == NULL) || (osh->ctfpool == NULL))
+ 		return;
+ 
+-#ifdef CONFIG_DHD_USE_STATIC_BUF
++#ifdef CONFIG_BCMDHD_USE_STATIC_BUF
+ 	if (bcm_static_buf) {
+ 		bcm_static_buf = 0;
+ 	}
+@@ -704,7 +704,7 @@
+ 		bcm_static_flowring = 0;
+ 	}
+ #endif /* BCMPCIE && DHD_USE_STATIC_FLOWRING */
+-#endif /* CONFIG_DHD_USE_STATIC_BUF */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF */
+ 
+ 	bb = b;
+ 
+@@ -1024,7 +1024,7 @@
+ 	}
+ }
+ 
+-#ifdef CONFIG_DHD_USE_STATIC_BUF
++#ifdef CONFIG_BCMDHD_USE_STATIC_BUF
+ void*
+ osl_pktget_static(osl_t *osh, uint len)
+ {
+@@ -1228,7 +1228,7 @@
+ 	spin_unlock_irqrestore(&bcm_static_flowring->flowring_lock, flags);
+ }
+ #endif /* BCMPCIE && DHD_USE_STATIC_FLOWRING */
+-#endif /* CONFIG_DHD_USE_STATIC_BUF */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF */
+ 
+ uint32
+ osl_pci_read_config(osl_t *osh, uint offset, uint size)
+@@ -1350,7 +1350,7 @@
+ 	/* only ASSERT if osh is defined */
+ 	if (osh)
+ 		ASSERT(osh->magic == OS_HANDLE_MAGIC);
+-#ifdef CONFIG_DHD_USE_STATIC_BUF
++#ifdef CONFIG_BCMDHD_USE_STATIC_BUF
+ 	if (bcm_static_buf)
+ 	{
+ 		int i = 0;
+@@ -1382,7 +1382,7 @@
+ 		}
+ 	}
+ original:
+-#endif /* CONFIG_DHD_USE_STATIC_BUF */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF */
+ 
+ 	flags = CAN_SLEEP() ? GFP_KERNEL: GFP_ATOMIC;
+ 	if ((addr = kmalloc(size, flags)) == NULL) {
+@@ -1413,7 +1413,7 @@
+ void
+ osl_mfree(osl_t *osh, void *addr, uint size)
+ {
+-#ifdef CONFIG_DHD_USE_STATIC_BUF
++#ifdef CONFIG_BCMDHD_USE_STATIC_BUF
+ 	if (bcm_static_buf)
+ 	{
+ 		if ((addr > (void *)bcm_static_buf) && ((unsigned char *)addr
+@@ -1434,7 +1434,7 @@
+ 			return;
+ 		}
+ 	}
+-#endif /* CONFIG_DHD_USE_STATIC_BUF */
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF */
+ 	if (osh && osh->cmn) {
+ 		ASSERT(osh->magic == OS_HANDLE_MAGIC);
+ 
+diff -ur original/Makefile modified/Makefile
+--- original/Makefile	2017-08-02 07:28:38.000000000 +0300
++++ modified/Makefile	2017-10-07 14:35:08.714236340 +0300
+@@ -65,10 +65,10 @@
+ DHDCFLAGS += -DBAND_AG
+ endif
+ 
+-ifeq ($(CONFIG_DHD_USE_STATIC_BUF),y)
++ifeq ($(CONFIG_BCMDHD_USE_STATIC_BUF),y)
+ # add dhd_static_buf to kernel image build
+ #obj-y += dhd_static_buf.o
+-DHDCFLAGS += -DCONFIG_DHD_USE_STATIC_BUF
++DHDCFLAGS += -DCONFIG_BCMDHD_USE_STATIC_BUF
+ DHDCFLAGS += -DSTATIC_WL_PRIV_STRUCT -DENHANCED_STATIC_BUF
+ endif
+ 
+diff -ur original/wl_cfg80211.h modified/wl_cfg80211.h
+--- original/wl_cfg80211.h	2017-08-02 07:28:38.000000000 +0300
++++ modified/wl_cfg80211.h	2017-10-07 14:34:58.830191938 +0300
+@@ -391,9 +391,9 @@
+ struct escan_info {
+ 	u32 escan_state;
+ #if defined(STATIC_WL_PRIV_STRUCT)
+-#ifndef CONFIG_DHD_USE_STATIC_BUF
+-#error STATIC_WL_PRIV_STRUCT should be used with CONFIG_DHD_USE_STATIC_BUF
+-#endif /* CONFIG_DHD_USE_STATIC_BUF */
++#ifndef CONFIG_BCMDHD_USE_STATIC_BUF
++#error STATIC_WL_PRIV_STRUCT should be used with CONFIG_BCMDHD_USE_STATIC_BUF
++#endif /* CONFIG_BCMDHD_USE_STATIC_BUF */
+ 	u8 *escan_buf;
+ #else
+ 	u8 escan_buf[ESCAN_BUF_SIZE];
