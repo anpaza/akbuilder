@@ -8,7 +8,7 @@
 .SUFFIXES: .dts .dtb
 
 ifeq ($(KERNEL.DIR),)
-$(error Kernel source directory not found! Please define KERNEL_DIR in local-config.mak!)
+$(error Kernel source directory not found! Please define KERNEL.DIR in local-config.mak!)
 endif
 
 # Figure out target kernel release (`uname -r`)

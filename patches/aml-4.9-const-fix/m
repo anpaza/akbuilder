@@ -1,0 +1,11 @@
+#!/bin/sh
+
+PATCH=../../build/patches/linux-4.19/001-const-fix.patch
+
+cat > $PATCH << EOF
+Fix erroneous 'const' modifiers in ppmgr driver.
+Older gccs would ignore it, newer treat as errors.
+
+EOF
+
+diff -ur original modified >> $PATCH

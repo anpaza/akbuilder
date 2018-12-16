@@ -12,6 +12,9 @@ ifeq ($(NDK_ROOT),)
 NDK_ROOT := $(strip $(dir $(shell which ndk-build 2>/dev/null)))
 endif
 
+# Always append '/' at the end of NDK_ROOT
+NDK_ROOT := $(NDK_ROOT:/=)/
+
 ifneq ($(NDK_ROOT),)
 # Build afrd if it isn't already
 $(AFRD_BIN): $(wildcard $(AFRD_DIR)*.c $(AFRD_DIR)*.h)

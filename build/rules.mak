@@ -54,7 +54,6 @@ PLATFORM.DIR = build/$(PLATFORM)/
 OUTDIRS = $(OUT)
 
 # Append to HELP to display additional target info
-HELP += $(NL)all - Build everything
 HELP += $(NL)clean - Delete all target and intermediate files
 
 # Apply patch file $1 relative to dir $2 with extra options $3

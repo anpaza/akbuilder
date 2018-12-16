@@ -13,6 +13,9 @@ ifeq ($(NDK_ROOT),)
 NDK_ROOT := $(strip $(dir $(shell which ndk-build 2>/dev/null)))
 endif
 
+# Always append '/' at the end of NDK_ROOT
+NDK_ROOT := $(NDK_ROOT:/=)/
+
 ifneq ($(NDK_ROOT),)
 # Build vfdd if it isn't already
 $(VFDD_BIN): $(wildcard $(VFDD_DIR)*.c $(VFDD_DIR)*.h)
