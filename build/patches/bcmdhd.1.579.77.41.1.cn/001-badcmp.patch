@@ -1,0 +1,25 @@
+Fix for
+    if (argv[i] == '\0') {
+:facepalm:
+
+diff -ur original/dhd_common.c modified/dhd_common.c
+--- original/dhd_common.c	2018-12-21 01:04:55.243821254 +0300
++++ modified/dhd_common.c	2018-12-21 01:06:42.029267711 +0300
+@@ -3547,7 +3547,7 @@
+ 			WL_PKT_FILTER_FIXED_LEN + WL_PKT_FILTER_PATTERN_FIXED_LEN);
+ 	} else if ((pkt_filter.type == 2) || (pkt_filter.type == 6)) {
+ 		int list_cnt = 0;
+-		char *endptr = '\0';
++		char *endptr = NULL;
+ 		wl_pkt_filter_pattern_listel_t *pf_el = &pkt_filterp->u.patlist.patterns[0];
+ 
+ 		while (argv[++i] != NULL) {
+@@ -3614,7 +3614,7 @@
+ 					htod16(WL_PKT_FILTER_MFLAG_NEG);
+ 				(argv[i])++;
+ 			}
+-			if (argv[i] == '\0') {
++			if (argv[i] == NULL) {
+ 				printf("Pattern not provided\n");
+ 				goto fail;
+ 			}

@@ -29,7 +29,8 @@ KERNEL.ARCH = arm64
 KERNEL.LOADADDR ?= 0x1080000
 include build/kernel.mak
 
-# Include AMLogic-specific drivers into initramfs
+ifneq ($(PLATFORM.DWC3.KO),)
+# Include AMLogic USB drivers into initramfs
 INITRAMFS.MODULES += dwc3.ko dwc_otg.ko
 
 # Tell initramfs builder where the .ko files are located, if it needs them
@@ -39,23 +40,34 @@ INITRAMFS.DEP.dwc_otg.ko = $(KERNEL.OUT)drivers/amlogic/usb/dwc_otg/310/dwc_otg.
 # Make known in-tree kernel modules depend on kernel-module
 $(INITRAMFS.DEP.dwc3.ko) \
 $(INITRAMFS.DEP.dwc_otg.ko): kernel-modules
+endif
 
 # Include extra modules for all platforms
 include build/platform-modules.mak
 
 # If platform needs the Mali driver, build it
 ifneq ($(PLATFORM.BUILD.KD_MALI),)
+# The path to Mali driver inside the buildroot ARM directory
+KD_MALI.DRVDIR ?= t83x/kernel/drivers/gpu/arm/midgard
 # The path to Mali kernel driver
-KD_MALI.DIR ?= $(AMLOGIC_BUILDROOT_DIR)/hardware/aml-$(PLATFORM.KERNEL_VER)/arm/gpu/midgard/r13p0/kernel/drivers/gpu/arm/midgard
+KD_MALI.DIR ?= $(AMLOGIC_BUILDROOT_DIR)/hardware/aml-$(PLATFORM.KERNEL_VER)/arm/gpu/$(KD_MALI.DRVDIR)
 include build/kd-mali.mak
 INITRAMFS.DEP.mali.ko = $(KD_MALI.FILE)
 endif
 
 # If platform needs the Wi-Fi driver, build it
 ifneq ($(PLATFORM.BUILD.KD_AP6XXX),)
-KD_AP6XXX.DIR ?= $(AMLOGIC_BUILDROOT_DIR)/hardware/aml-$(PLATFORM.KERNEL_VER)/wifi/broadcom/drivers/ap6xxx/bcmdhd_1_201_59_x
+KD_AP6XXX.DRVDIR ?= ap6xxx/bcmdhd_1_201_59_x
+KD_AP6XXX.DIR ?= $(AMLOGIC_BUILDROOT_DIR)/hardware/aml-$(PLATFORM.KERNEL_VER)/wifi/broadcom/drivers/$(KD_AP6XXX.DRVDIR)
 include build/kd-ap6xxx.mak
 INITRAMFS.DEP.dhd.ko = $(KD_AP6XXX.FILE)
+endif
+
+# Build the video format decoder drivers, if needed
+ifneq ($(PLATFORM.BUILD.MEDIAMOD),)
+KD_MEDIAMOD.DIR ?= $(AMLOGIC_BUILDROOT_DIR)/hardware/aml-$(PLATFORM.KERNEL_VER)/amlogic/media_modules
+include build/media_modules.mak
+$(foreach _,$(KD_MEDIAMOD.FILES),$(eval INITRAMFS.DEP.$(notdir $_) = $_))
 endif
 
 # Build additional modules before building initramfs

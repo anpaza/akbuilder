@@ -18,6 +18,8 @@ BOOTIMG.FILE ?= boot.img
 BOOTIMG.KERNEL ?= $(KERNEL.FILE)
 BOOTIMG.RAMDISK ?= $(INITRAMFS.FILE)
 BOOTIMG.SECOND ?= $(KERNEL.DTB)
+# enable to avoid "output lines suppressed due to ratelimiting" klog messages
+BOOTIMG.CMDLINE += printk.devkmsg=on
 
 BOOTIMG.BASE ?= 0x0
 BOOTIMG.KERNEL_OFS ?= 0x1080000
@@ -32,4 +34,5 @@ $(OUT)$(BOOTIMG.FILE): $(MBI_PACK) $(BOOTIMG.KERNEL) $(BOOTIMG.RAMDISK) $(BOOTIM
 		--base $(BOOTIMG.BASE) --kernel_offset $(BOOTIMG.KERNEL_OFS) \
 		--kernel $(BOOTIMG.KERNEL) \
 		--ramdisk $(BOOTIMG.RAMDISK) \
-		--second $(BOOTIMG.SECOND)
+		--second $(BOOTIMG.SECOND) \
+		--cmdline "$(BOOTIMG.CMDLINE)"

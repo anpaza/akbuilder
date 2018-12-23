@@ -9,6 +9,9 @@ PLATFORM.BUILD.KD_AP6XXX = 1
 PLATFORM.BUILD.INITRAMFS = 1
 PLATFORM.BUILD.BOOTIMG = 1
 
+# We build the USB driver from the kernel tree
+PLATFORM.DWC3.KO = 1
+
 # Include Mali and Wi-Fi drivers in initramfs
 INITRAMFS.MODULES ?= mali.ko dhd.ko
 

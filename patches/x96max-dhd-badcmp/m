@@ -1,0 +1,12 @@
+#!/bin/sh
+
+PATCH=../../build/patches/bcmdhd.1.579.77.41.1.cn/001-badcmp.patch
+
+cat > $PATCH << EOF
+Fix for
+    if (argv[i] == '\0') {
+:facepalm:
+
+EOF
+
+diff -ur original modified >> $PATCH

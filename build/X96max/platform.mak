@@ -6,18 +6,35 @@ PLATFORM.CC_DIR ?= $(AMLOGIC_BUILDROOT_DIR)/toolchain/gcc/linux-x86/aarch64/gcc-
 
 # Default device tree
 KERNEL.DTS ?= g12a_x96max_4g.dts
+# Build a .cpio.gz file with initramfs file system
+PLATFORM.BUILD.INITRAMFS = 1
+# Pack kernel and initramfs into boot.img (aka recovery.img)
+PLATFORM.BUILD.BOOTIMG = 1
 
 # We want the Mali and Wi-Fi drivers
-#PLATFORM.BUILD.KD_MALI = 1
-#PLATFORM.BUILD.KD_AP6XXX = 1
-#PLATFORM.BUILD.INITRAMFS = 1
-#PLATFORM.BUILD.BOOTIMG = 1
+PLATFORM.BUILD.KD_MALI = 1
+# The path to Mali driver inside the buildroot ARM directory
+KD_MALI.DRVDIR ?= dvalin/kernel/drivers/gpu/arm/midgard
 
-# Include Mali and Wi-Fi drivers in initramfs
-#INITRAMFS.MODULES = mali.ko dhd.ko
+# Broadcom 6235 driver for Wi-Fi
+PLATFORM.BUILD.KD_AP6XXX = 1
+# The path to driver to use for our platform
+KD_AP6XXX.DRVDIR ?= ap6xxx/bcmdhd.1.579.77.41.1.cn
+
+# Build the video format decoder drivers
+PLATFORM.BUILD.MEDIAMOD = 1
+
+# Include Mali, Wi-Fi and "media module" drivers in initramfs
+INITRAMFS.MODULES = mali.ko dhd.ko $(KD_MEDIAMOD.MODULES)
+# And support for Bluetooth USB dongles
+INITRAMFS.MODULES += btusb.ko btintel.ko btbcm.ko btrtl.ko
+# NFS support
+INITRAMFS.MODULES += nfsd.ko exportfs.ko nfs.ko nfsv2.ko nfsv3.ko nfs_acl.ko grace.ko \
+	lockd.ko sunrpc.ko rpcsec_gss_krb5.ko auth_rpcgss.ko
 #INITRAMFS.EXTRA = $(addprefix $(INITRAMFS.OUT)tree/,vfdd vfdd.ini afrd afrd.ini)
+INITRAMFS.DIRS = acct boot cache config data dev lib mnt oem odm proc storage system sys vendor
 
-define UNUSED_PLATFORM.BUILD.EXTRA
+define ___UNUSED_PLATFORM.BUILD.EXTRA
 # The directory for the linux_vfd project (https://github.com/anpaza/linux_vfd)
 LINUX_VFD_DIR ?= ../linux_vfd/
 # and we want the 32-bit ARM daemon for LCD display on initramfs
@@ -35,10 +52,13 @@ endef
 include build/platform-amlogic.mak
 
 # Create the X92-specific DTS
-$(KERNEL.DTS.DIR)g12a_x96max_2g.dts: $(PLATFORM.DIR)x96plus-dts.patch $(KERNEL.DTS.DIR)g12a_s905x2_u211.dts
+$(KERNEL.DTS.DIR)g12a_x96max_4g.dts: $(PLATFORM.DIR)x96max-dts-4g.patch $(KERNEL.DTS.DIR)g12a_s905x2_u211.dts
 	$(call APPLY.PATCH,$<,,-o $@ $(word 2,$^))
 
-$(KERNEL.DTS.DIR)g12a_x96max_3g.dts: $(PLATFORM.DIR)x96plus-dts-3g.patch $(KERNEL.DTS.DIR)g12a_x96max_2g.dts
+$(KERNEL.DTS.DIR)g12a_x96max_3g.dts: $(PLATFORM.DIR)x96max-dts-3g.patch $(KERNEL.DTS.DIR)g12a_x96max_4g.dts
+	$(call APPLY.PATCH,$<,,-o $@ $(word 2,$^))
+
+$(KERNEL.DTS.DIR)g12a_x96max_2g.dts: $(PLATFORM.DIR)x96max-dts-2g.patch $(KERNEL.DTS.DIR)g12a_x96max_4g.dts
 	$(call APPLY.PATCH,$<,,-o $@ $(word 2,$^))
 
 # How vfdd files gets copied to initramfs build dir

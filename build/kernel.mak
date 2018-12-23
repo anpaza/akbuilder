@@ -93,3 +93,8 @@ $(KERNEL.DTB): $(KERNEL.DTS.DIR)$(KERNEL.DTS) | $(KERNEL.FILE)
 $(KERNEL.DTS.DIR)%.dts: | $(KERNEL.OUT).stamp.config
 	true
 endif
+
+# Target for forcing rebuilding kernel
+.PHONY: kernel-touch
+kernel-touch:
+	touch $(KERNEL.OUT).stamp.config

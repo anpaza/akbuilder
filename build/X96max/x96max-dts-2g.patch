@@ -1,0 +1,183 @@
+This patch adds the descriptor for the 7-segment LED display of X92.
+Also it adds a section for the old remote control driver from
+Beijing-platform. There is already a remote control section in
+mesongxm.dti (which is included from gxm_q201*.dts), but that one
+is for the new driver (which must be disabled in kernel config).
+
+Also it modifies the Ethernet section to specify a gigabit
+controller rather than the 100MBit used in q201 dts, and disables
+the USB3 hub since there are no USB3 connectors in X92.
+
+--- g12a_s905x2_u211.dts	2018-09-21 07:30:57.000000000 +0300
++++ g12a_x96max_2g.dts	2018-12-17 02:51:21.164684933 +0300
+@@ -19,10 +19,11 @@
+ 
+ #include "mesong12a.dtsi"
+ #include "partition_mbox_normal.dtsi"
++#include "mesong12a_skt-panel.dtsi"
+ 
+ / {
+ 	model = "Amlogic";
+-	amlogic-dt-id = "g12a_s905x2_u211";
++	amlogic-dt-id = "g12a_s905x2_u211_rgmii_2g";
+ 	compatible = "amlogic, g12a";
+ 	interrupt-parent = <&gic>;
+ 	#address-cells = <2>;
+@@ -1132,14 +1133,14 @@
+ 	/** 0: normal, 1: otg+dwc3 host only, 2: otg+dwc3 device only*/
+ 	controller-type = <1>;
+ };
++
+ &ethmac {
+ 	status = "okay";
+-	pinctrl-names = "internal_eth_pins", "internal_gpio_pins";
+-	pinctrl-0 = <&internal_eth_pins>;
+-	pinctrl-1 = <&internal_gpio_pins>;
+-	mc_val = <0x4be04>;
++	pinctrl-names = "external_eth_pins";
++	pinctrl-0 = <&external_eth_pins>;
++	mc_val = <0x1621>;
+ 
+-	internal_phy=<1>;
++	internal_phy=<0>;
+ };
+ 
+ &uart_A {
+@@ -1330,3 +1331,137 @@
+ 	status = "okay";
+ };
+ 
++/ {
++ 	lcd {
++		/delete-property/ interrupt-names;
++		/delete-property/ interrupts;
++		reg = <0x0 0xffd07000 0x0 0x400    /* dsi_host */
++			0x0 0xff644000 0x0 0x2000>; /* dsi_phy */
++		clocks = <&clkc CLKID_MIPI_DSI_HOST
++			&clkc CLKID_MIPI_DSI_PHY
++			&clkc CLKID_DSI_MEAS_COMP
++			&clkc CLKID_VCLK2_ENCL
++			&clkc CLKID_VCLK2_VENCL>;
++		clock-names = "dsi_host_gate",
++			"dsi_phy_gate",
++			"dsi_meas",
++			"encl_top_gate",
++			"encl_int_gate";
++	};
++
++ 	lcd_extern {
++		/delete-property/ i2c_bus;
++	};
++
++	backlight {
++		pinctrl-names = "pwm_on";
++		/delete-property/ pinctrl-1;
++	};
++
++ 	bl_extern {
++		/delete-property/ i2c_bus;
++
++ 		extern_0 {
++			i2c_bus = "i2c_bus_c";
++		};
++	};
++
++	/delete-node/ dmc_monitor;
++
++	dvb {
++		status = "disabled";
++	};
++
++	gpioleds {
++		/delete-node/ net_green;
++		/delete-node/ net_red;
++		/delete-node/ remote_led;
++		sys_led {
++			gpios=<&gpio_ao GPIOAO_11 GPIO_ACTIVE_HIGH>;
++		};
++	};
++
++	meson-vfd {
++		compatible = "amlogic,aml_vfd";
++		dev_name = "meson-vfd";
++		status = "okay";
++	};
++
++	partitions {
++		vendor {
++			size = <0x0 0x46000000>;
++		};
++	};
++
++	sd2@ffe05000 {
++		sdio {
++			f_max = <170000000>;
++		};
++	};
++};
++
++&custom_maps {
++	map_1 {
++		cursor_down_scancode = <0x1a>;
++		cursor_left_scancode = <0x51>;
++		cursor_ok_scancode = <0x13>;
++		cursor_right_scancode = <0x50>;
++		cursor_up_scancode = <0x16>;
++
++		fn_key_scancode = <0x0>;
++		size  = <44>;
++
++		keymap = <REMOTE_KEY(0x01, KEY_0)
++			REMOTE_KEY(0x4e, KEY_1)
++			REMOTE_KEY(0x0d, KEY_2)
++			REMOTE_KEY(0x0c, KEY_3)
++			REMOTE_KEY(0x4a, KEY_4)
++			REMOTE_KEY(0x09, KEY_5)
++			REMOTE_KEY(0x08, KEY_6)
++			REMOTE_KEY(0x46, KEY_7)
++			REMOTE_KEY(0x05, KEY_8)
++			REMOTE_KEY(0x04, KEY_9)
++			REMOTE_KEY(0x49, KEY_F5)
++			REMOTE_KEY(0x48, KEY_KPPLUS)
++			REMOTE_KEY(0x4d, KEY_KP4)
++			REMOTE_KEY(0x03, KEY_KP5)
++			REMOTE_KEY(0x43, KEY_KP6)
++			REMOTE_KEY(0x45, KEY_F6)
++			REMOTE_KEY(0x0f, KEY_F7)
++			REMOTE_KEY(0x44, KEY_F8)
++			REMOTE_KEY(0x12, KEY_F9)
++			REMOTE_KEY(0x4b, KEY_F10)
++			REMOTE_KEY(0x26, KEY_NUMLOCK)
++			REMOTE_KEY(0x16, KEY_UP)
++			REMOTE_KEY(0x1a, KEY_DOWN)
++			REMOTE_KEY(0x51, KEY_LEFT)
++			REMOTE_KEY(0x50, KEY_RIGHT)
++			REMOTE_KEY(0x13, KEY_RIGHTCTRL)
++			REMOTE_KEY(0x19, KEY_BACK)
++			REMOTE_KEY(0x4c, KEY_LEFTMETA)
++			REMOTE_KEY(0x40, KEY_POWER)
++			REMOTE_KEY(0x41, KEY_MUTE)
++			REMOTE_KEY(0x18, KEY_VOLUMEUP)
++			REMOTE_KEY(0x10, KEY_VOLUMEDOWN)
++			REMOTE_KEY(0x11, KEY_HOME)
++			REMOTE_KEY(0x0a, KEY_DELETE)
++			REMOTE_KEY(0x42, KEY_BACKSPACE)
++			REMOTE_KEY(0x47, KEY_EMAIL)
++			REMOTE_KEY(0x0e, KEY_SCROLLLOCK)
++			REMOTE_KEY(0x59, KEY_HANGEUL)
++			REMOTE_KEY(0x58, KEY_HANJA)
++			REMOTE_KEY(0x54, KEY_SCALE)
++			REMOTE_KEY(0x52, KEY_YEN)
++			REMOTE_KEY(0x5a, KEY_PAUSE)
++			REMOTE_KEY(0x55, KEY_KPCOMMA)
++			REMOTE_KEY(0x00, KEY_RIGHTALT)>;
++	};
++};
++
++&p_tsensor {
++	rtemp = <130000>;
++};
++
++&d_tsensor {
++	rtemp = <130000>;
++};
