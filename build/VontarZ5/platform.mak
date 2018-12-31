@@ -30,6 +30,6 @@ deploy:
 	+$(MAKE) bootfiles BOOTIMG.FILE=kernel.img
 	mkdir -p $(OUT)deploy
 	mv -f $(OUT){aml_autoscript,kernel.img,dtb.img} $(OUT)deploy
-	for x in doc/{README-boot*.m4,CHANGES*.m4} ; do \
+	for x in doc/aml-$(PLATFORM.KERNEL_VER)/{README-boot*.m4,CHANGES*.m4} ; do \
 		m4 -DPLATFORM="$(PLATFORM)" $$x > $(OUT)deploy/`basename $$x .m4`.txt ; \
 	done

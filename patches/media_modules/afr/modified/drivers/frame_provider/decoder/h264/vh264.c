@@ -2725,11 +2725,10 @@ static s32 vh264_init(void)
 	vf_reg_provider(&vh264_vf_prov);
 #endif
 
-	if (frame_dur != 0) {
-		if (!is_reset)
-			vf_notify_receiver(PROVIDER_NAME,
-					VFRAME_EVENT_PROVIDER_FR_HINT,
-					(void *)((unsigned long)frame_dur));
+	if (frame_dur != 0 && !is_reset) {
+		vf_notify_receiver(PROVIDER_NAME,
+				VFRAME_EVENT_PROVIDER_FR_HINT,
+				(void *)((unsigned long)frame_dur));
 		fr_hint_status = VDEC_HINTED;
 	} else
 		fr_hint_status = VDEC_NEED_HINT;
@@ -2781,7 +2780,7 @@ static int vh264_stop(int mode)
 
 	if (stat & STAT_VF_HOOK) {
 		if (mode == MODE_FULL) {
-			if (fr_hint_status == VDEC_HINTED && !is_reset)
+			if (fr_hint_status == VDEC_HINTED)
 				vf_notify_receiver(PROVIDER_NAME,
 					VFRAME_EVENT_PROVIDER_FR_END_HINT,
 					NULL);

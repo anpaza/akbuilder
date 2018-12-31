@@ -1,0 +1,22 @@
+This patch adds the descriptor for the 7-segment LED display of X92.
+
+--- g12a_x96max_4g.dts	2018-12-29 02:54:16.097173206 +0300
++++ g12a_x96max_3g.dts	2018-12-31 18:26:48.752101325 +0300
+@@ -23,7 +23,7 @@
+ 
+ / {
+ 	model = "Amlogic";
+-	amlogic-dt-id = "g12a_s905x2_u211_rgmii_4g";
++	amlogic-dt-id = "g12a_s905x2_u211_rgmii_3g";
+ 	compatible = "amlogic, g12a";
+ 	interrupt-parent = <&gic>;
+ 	#address-cells = <2>;
+@@ -46,7 +46,7 @@
+ 
+ 	memory@00000000 {
+ 		device_type = "memory";
+-		linux,usable-memory = <0x0 0x100000 0x0 0xf5700000>;
++		linux,usable-memory = <0x0 0x100000 0x0 0xb5700000>;
+ 	};
+ 
+ 	reserved-memory {

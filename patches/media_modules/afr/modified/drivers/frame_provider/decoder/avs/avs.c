@@ -1570,12 +1570,11 @@ static s32 vavs_init(void)
 	vf_reg_provider(&vavs_vf_prov);
 #endif
 
-	if (vavs_amstream_dec_info.rate != 0) {
-		if (!is_reset)
-			vf_notify_receiver(PROVIDER_NAME,
-					VFRAME_EVENT_PROVIDER_FR_HINT,
-					(void *)((unsigned long)
-					vavs_amstream_dec_info.rate));
+	if (vavs_amstream_dec_info.rate != 0 && !is_reset) {
+		vf_notify_receiver(PROVIDER_NAME,
+				VFRAME_EVENT_PROVIDER_FR_HINT,
+				(void *)((unsigned long)
+				vavs_amstream_dec_info.rate));
 		fr_hint_status = VDEC_HINTED;
 	} else
 		fr_hint_status = VDEC_NEED_HINT;
@@ -1734,7 +1733,7 @@ static int amvdec_avs_remove(struct platform_device *pdev)
 	}
 #endif
 	if (stat & STAT_VF_HOOK) {
-		if (fr_hint_status == VDEC_HINTED && !is_reset)
+		if (fr_hint_status == VDEC_HINTED)
 			vf_notify_receiver(PROVIDER_NAME,
 				VFRAME_EVENT_PROVIDER_FR_END_HINT, NULL);
 		fr_hint_status = VDEC_NO_NEED_HINT;

@@ -74,7 +74,7 @@ $(INITRAMFS.OUT)tree/vfdd.ini: $(VFDD_DIR)config/vfdd-x96max.ini $(INITRAMFS.OUT
 $(INITRAMFS.OUT)tree/afrd: $(AFRD_BIN) $(INITRAMFS.OUT).stamp.copy
 	$(call CP,$<,$@)
 
-$(INITRAMFS.OUT)tree/afrd.ini: $(AFRD_DIR)afrd.ini $(INITRAMFS.OUT).stamp.copy
+$(INITRAMFS.OUT)tree/afrd.ini: $(AFRD_DIR)config/afrd-x96max.ini $(INITRAMFS.OUT).stamp.copy
 	$(call CP,$<,$@)
 
 .PHONY: deploy
@@ -85,12 +85,12 @@ define DEPLOY
 	+$(MAKE) bootfiles BOOTIMG.FILE=kernel.img KERNEL.DTS=$2
 	mkdir -p $(OUT)deploy/$1
 	mv -f $(OUT){aml_autoscript,kernel.img,dtb.img} $(OUT)deploy/$1
-	for x in doc/{README-boot*.m4,CHANGES*.m4} ; do \
+	for x in doc/aml-$(PLATFORM.KERNEL_VER)/{README-boot*.m4,CHANGES*.m4} ; do \
 		m4 -DPLATFORM="$(PLATFORM)" $$x > $(OUT)deploy/$1/`basename $$x .m4`.txt ; \
 	done
 endef
 
 deploy:
-	$(call DEPLOY,2G,g12a_x96max_2g.dts)
+#	$(call DEPLOY,2G,g12a_x96max_2g.dts)
 	$(call DEPLOY,3G,g12a_x96max_3g.dts)
 	$(call DEPLOY,4G,g12a_x96max_4g.dts)

@@ -9164,12 +9164,11 @@ static s32 vh265_init(struct hevc_state_s *hevc)
 	vf_reg_provider(&vh265_vf_prov);
 	vf_notify_receiver(hevc->provider_name, VFRAME_EVENT_PROVIDER_START,
 				NULL);
-	if (hevc->frame_dur != 0) {
-		if (!is_reset)
-			vf_notify_receiver(hevc->provider_name,
-					VFRAME_EVENT_PROVIDER_FR_HINT,
-					(void *)
-					((unsigned long)hevc->frame_dur));
+	if (hevc->frame_dur != 0 && !is_reset) {
+		vf_notify_receiver(hevc->provider_name,
+				VFRAME_EVENT_PROVIDER_FR_HINT,
+				(void *)
+				((unsigned long)hevc->frame_dur));
 		fr_hint_status = VDEC_HINTED;
 	} else
 		fr_hint_status = VDEC_NEED_HINT;
@@ -9178,7 +9177,7 @@ static s32 vh265_init(struct hevc_state_s *hevc)
 					 hevc);
 	vf_reg_provider(&vh265_vf_prov);
 	vf_notify_receiver(PROVIDER_NAME, VFRAME_EVENT_PROVIDER_START, NULL);
-	if (hevc->frame_dur != 0) {
+	if (hevc->frame_dur != 0 && !is_reset) {
 		vf_notify_receiver(PROVIDER_NAME,
 				VFRAME_EVENT_PROVIDER_FR_HINT,
 				(void *)
@@ -9293,11 +9292,10 @@ static int vh265_stop(struct hevc_state_s *hevc)
 	}
 
 	if (hevc->stat & STAT_VF_HOOK) {
-		if (fr_hint_status == VDEC_HINTED && !is_reset) {
+		if (fr_hint_status == VDEC_HINTED)
 			vf_notify_receiver(hevc->provider_name,
 					VFRAME_EVENT_PROVIDER_FR_END_HINT,
 					NULL);
-		}
 		fr_hint_status = VDEC_NO_NEED_HINT;
 		vf_unreg_provider(&vh265_vf_prov);
 		hevc->stat &= ~STAT_VF_HOOK;

@@ -1676,13 +1676,12 @@ void vdec_release(struct vdec_s *vdec)
 
 	if (vdec->vframe_provider.name) {
 		if (!vdec_single(vdec)) {
-			if (vdec_core->hint_fr_vdec == vdec
-			&& vdec->fr_hint_state == VDEC_HINTED
-			/*&& !vdec->is_reset -- Android MediCodec always resets video before stopping */) {
-				vf_notify_receiver(
-					vdec->vf_provider_name,
-					VFRAME_EVENT_PROVIDER_FR_END_HINT,
-					NULL);
+			if (vdec_core->hint_fr_vdec == vdec) {
+				if (vdec->fr_hint_state == VDEC_HINTED)
+					vf_notify_receiver(
+						vdec->vf_provider_name,
+						VFRAME_EVENT_PROVIDER_FR_END_HINT,
+						NULL);
 				vdec->fr_hint_state = VDEC_NO_NEED_HINT;
 			}
 		}
