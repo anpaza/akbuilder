@@ -1,0 +1,14 @@
+#!/bin/sh
+
+PATCH=../../../build/patches/linux-4.9/001-const-fix.patch
+
+cat > $PATCH << EOF
+Fix erroneous 'const' modifiers in ppmgr driver.
+Older gccs would ignore it, newer treat as errors.
+
+Also 'platform_type' is replaced by 'get_platform_type()' as the
+variable is not directly accessible from ppmgr_vpp.c
+
+EOF
+
+diff -ur original modified >> $PATCH

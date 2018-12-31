@@ -22,6 +22,7 @@ LINUX_VFD_DIR ?= ../linux_vfd/
 # and we want the 32-bit ARM daemon for LCD display on initramfs
 VFDD_ARCH = armeabi-v7a
 include build/vfdd.mak
+PLATFORM.KERNEL_COPY += ln -s $$(call CFN,$$(LINUX_VFD_DIR)/vfd) $$(KERNEL.OUT)drivers/amlogic/input/$$(NL)
 
 # The directory for the automatic framerate daemon (https://github.com/anpaza/afrd)
 AFRD_DIR ?= ../afrd/
@@ -44,7 +45,7 @@ $(KERNEL.DTS.DIR)gxm_x92_3g.dts: $(PLATFORM.DIR)x92-dts-3g.patch $(KERNEL.DTS.DI
 $(INITRAMFS.OUT)tree/vfdd: $(VFDD_BIN) $(INITRAMFS.OUT).stamp.copy
 	$(call CP,$<,$@)
 
-$(INITRAMFS.OUT)tree/vfdd.ini: $(VFDD_DIR)vfdd.ini $(INITRAMFS.OUT).stamp.copy
+$(INITRAMFS.OUT)tree/vfdd.ini: $(VFDD_DIR)config/vfdd-x92.ini $(INITRAMFS.OUT).stamp.copy
 	$(call CP,$<,$@)
 
 # How afrd files gets copied to initramfs build dir

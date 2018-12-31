@@ -1,0 +1,10 @@
+#!/bin/sh
+
+PATCH=../../../build/X96max/x96max-dts-4g.patch
+
+cat > $PATCH << EOF
+This patch adds the descriptor for the 7-segment LED display of X92.
+
+EOF
+
+diff -u g12a_s905x2_u211.dts g12a_x96max_4g.dts >> $PATCH

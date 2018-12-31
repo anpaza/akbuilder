@@ -1,7 +1,7 @@
 This patch adds the descriptor for the 7-segment LED display of X92.
 
 --- g12a_s905x2_u211.dts	2018-09-21 07:30:57.000000000 +0300
-+++ g12a_x96max_4g.dts	2018-12-23 12:39:19.503663109 +0300
++++ g12a_x96max_4g.dts	2018-12-29 02:54:16.097173206 +0300
 @@ -19,10 +19,11 @@
  
  #include "mesong12a.dtsi"
@@ -53,7 +53,7 @@ This patch adds the descriptor for the 7-segment LED display of X92.
  };
  
  &uart_A {
-@@ -1330,3 +1331,144 @@
+@@ -1330,3 +1331,148 @@
  	status = "okay";
  };
  
@@ -85,10 +85,7 @@ This patch adds the descriptor for the 7-segment LED display of X92.
 +		/delete-property/ i2c_bus;
 +	};
 +
-+	backlight {
-+		pinctrl-names = "pwm_on";
-+		/delete-property/ pinctrl-1;
-+	};
++	/delete-node/ backlight;
 +
 + 	bl_extern {
 +		/delete-property/ i2c_bus;
@@ -113,12 +110,6 @@ This patch adds the descriptor for the 7-segment LED display of X92.
 +		};
 +	};
 +
-+	meson-vfd {
-+		compatible = "amlogic,aml_vfd";
-+		dev_name = "meson-vfd";
-+		status = "okay";
-+	};
-+
 +	partitions {
 +		vendor {
 +			size = <0x0 0x46000000>;
@@ -130,6 +121,19 @@ This patch adds the descriptor for the 7-segment LED display of X92.
 +		sdio {
 +			f_max = <170000000>;
 +		};
++	};
++
++	meson-vfd {
++		compatible = "amlogic,aml_vfd";
++		dev_name = "meson-vfd";
++		status = "okay";
++		gpios = <&gpio GPIOA_14 GPIO_ACTIVE_HIGH>,      /* DI/DO */
++			<&gpio GPIOA_15 GPIO_ACTIVE_HIGH>,      /* CLK */
++			<&gpio_ao GPIOAO_10 GPIO_ACTIVE_HIGH>;  /* STB */
++		/* dot LED names */
++		dot_names = "APPS", "SETUP", "USB", "CARD", ":", "HDMI", "CVBS";
++		/* dot LED <16_bit_word bit_number> in raw display buffer ('overlay') */
++		dot_bits = /bits/ 8 <0 3 1 3 2 3 3 3 4 3 5 3 6 3>;
 +	};
 +};
 +

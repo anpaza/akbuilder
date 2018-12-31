@@ -1,0 +1,25 @@
+on early-fs
+    start modules_install
+    wait_for_prop sys.modules_install 1
+
+    # 0 = media box; 1 = LCD TV; default is 1
+    write /sys/module/amvideo/parameters/platform_type 0
+
+service modules_install /modules_install.sh
+    disabled
+    oneshot
+    group shell root
+    seclabel u:r:preinstall:s0
+
+service vfdd /vfdd /etc/vfdd.ini /vfdd.ini
+    class main
+    user root
+    group root
+    # piggyback on someone's context with enough rights
+    seclabel u:r:system_server:s0
+
+service afrd /afrd /etc/afrd.ini /afrd.ini
+    class main
+    user root
+    group root
+    seclabel u:r:system_server:s0

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+PATCH=../../../build/X92/x92-dts-3g.patch
+
+cat > $PATCH << EOF
+This patch transforms the device tree for 2Gb RAM models into
+a device tree for models with 3Gb RAM.
+
+EOF
+
+diff -u ../x92-dts/gxm_x92_2g.dts gxm_x92_3g.dts >> $PATCH

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+PATCH=../../../build/patches/linux-3.14/003-rfkill.patch
+
+cat > $PATCH << EOF
+This patch relaxes security checks for writing the /sys/class/rfkill/*/state
+attribute. Normally it would check for CAP_NET_ADMIN but X92 firmware supposes
+it's limited only by filesystem access rights.
+
+EOF
+
+diff -ur original modified >> $PATCH

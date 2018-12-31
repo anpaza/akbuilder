@@ -1,0 +1,22 @@
+Integrate vfd driver into kernel build system.
+
+diff -ur original/drivers/amlogic/input/Kconfig modified/drivers/amlogic/input/Kconfig
+--- original/drivers/amlogic/input/Kconfig	2018-09-21 07:30:58.000000000 +0300
++++ modified/drivers/amlogic/input/Kconfig	2018-12-26 23:28:22.826853354 +0300
+@@ -20,5 +20,7 @@
+ 
+ source "drivers/amlogic/input/sensor/Kconfig"
+ 
++source "drivers/amlogic/input/vfd/Kconfig"
++
+ endif
+ 
+diff -ur original/drivers/amlogic/input/Makefile modified/drivers/amlogic/input/Makefile
+--- original/drivers/amlogic/input/Makefile	2018-09-21 07:30:58.000000000 +0300
++++ modified/drivers/amlogic/input/Makefile	2018-12-26 23:28:59.522990156 +0300
+@@ -13,3 +13,5 @@
+ obj-$(CONFIG_AMLOGIC_TOUCHSCREEN) += touchscreen/
+ 
+ obj-$(CONFIG_AMLOGIC_SENSOR) += sensor/
++
++obj-$(CONFIG_VFD_SUPPORT) += vfd/

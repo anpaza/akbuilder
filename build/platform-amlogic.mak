@@ -14,11 +14,7 @@ PLATFORM.KERNEL_PATCHES = \
 	$(sort $(wildcard build/patches/linux-$(PLATFORM.KERNEL_VER)/*.patch)) \
 	$(sort $(wildcard $(PLATFORM.DIR)linux-$(PLATFORM.KERNEL_VER)/*.patch))
 # Make a link from '.' to 'customer' so that we can build dtbs
-define PLATFORM.KERNEL_COPY
-	ln -s $(call CFN,$(KERNEL.OUT)) $(KERNEL.OUT)customer
-	ln -s $(call CFN,$(LINUX_VFD_DIR)/vfd) $(KERNEL.OUT)drivers/amlogic/input/
-
-endef
+PLATFORM.KERNEL_COPY += ln -s $(call CFN,$(KERNEL.OUT)) $(KERNEL.OUT)customer$(NL)
 
 # Use the DTS files from kernel tree
 KERNEL.DTS.DIR = $(KERNEL.OUT)arch/arm64/boot/dts/amlogic/

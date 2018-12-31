@@ -1,0 +1,26 @@
+The platform_type bool shouldn't be exported from video_sink driver
+as it conflicts with a variable with same name from ppmgr.
+
+diff -ur original/drivers/amlogic/media/video_sink/video.c modified/drivers/amlogic/media/video_sink/video.c
+--- original/drivers/amlogic/media/video_sink/video.c	2018-09-21 07:30:58.000000000 +0300
++++ modified/drivers/amlogic/media/video_sink/video.c	2018-12-24 01:18:23.892053457 +0300
+@@ -149,7 +149,7 @@
+ 
+ static bool bypass_pps = true;
+ /*For 3D usage ----0:  mbx   1: tv */
+-bool platform_type = 1;
++static bool platform_type = 1;
+ 
+ /* for bit depth setting. */
+ int bit_depth_flag = 8;
+diff -ur original/include/linux/amlogic/media/video_sink/vpp.h modified/include/linux/amlogic/media/video_sink/vpp.h
+--- original/include/linux/amlogic/media/video_sink/vpp.h	2018-09-21 07:31:02.000000000 +0300
++++ modified/include/linux/amlogic/media/video_sink/vpp.h	2018-12-24 01:19:25.995319585 +0300
+@@ -156,7 +156,6 @@
+ #ifdef TV_REVERSE
+ extern bool reverse;
+ #endif
+-extern bool platform_type;
+ 
+ enum select_scaler_path_e {
+ 	CORE0_PPS_CORE1 = 0,

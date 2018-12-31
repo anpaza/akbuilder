@@ -1,0 +1,369 @@
+Fix automatic framerate support, which is badly broken.
+
+diff -ur original/drivers/frame_provider/decoder/avs/avs.c modified/drivers/frame_provider/decoder/avs/avs.c
+--- original/drivers/frame_provider/decoder/avs/avs.c	2018-09-21 07:30:41.000000000 +0300
++++ modified/drivers/frame_provider/decoder/avs/avs.c	2018-12-31 02:19:09.974065268 +0300
+@@ -269,6 +269,7 @@
+ 		*duration = frame_rate_tab[READ_VREG(AVS_FRAME_RATE) & 0xf];
+ 		/* pr_info("%s: duration = %d\n", __func__, *duration); */
+ 		frame_dur = *duration;
++		fr_hint_status = VDEC_NEED_HINT;
+ 		schedule_work(&notify_work);
+ 	}
+ 
+diff -ur original/drivers/frame_provider/decoder/h264/vh264.c modified/drivers/frame_provider/decoder/h264/vh264.c
+--- original/drivers/frame_provider/decoder/h264/vh264.c	2018-09-21 07:30:41.000000000 +0300
++++ modified/drivers/frame_provider/decoder/h264/vh264.c	2018-12-31 04:07:22.125887178 +0300
+@@ -441,8 +441,11 @@
+ static void vh264_notify_work(struct work_struct *work)
+ {
+ 	pr_info("frame duration changed %d\n", frame_dur);
+-	vf_notify_receiver(PROVIDER_NAME, VFRAME_EVENT_PROVIDER_FR_HINT,
+-		(void *)((unsigned long)frame_dur));
++	if (fr_hint_status == VDEC_NEED_HINT) {
++		vf_notify_receiver(PROVIDER_NAME, VFRAME_EVENT_PROVIDER_FR_HINT,
++			(void *)((unsigned long)frame_dur));
++		fr_hint_status = VDEC_HINTED;
++	}
+ 
+ 	return;
+ }
+@@ -1191,10 +1194,8 @@
+ 				 */
+ 				if ((frame_dur * 2) != frame_dur_es) {
+ 					frame_dur = frame_dur_es;
+-					if (fr_hint_status == VDEC_NEED_HINT) {
+-						schedule_work(&notify_work);
+-						fr_hint_status = VDEC_HINTED;
+-					}
++					fr_hint_status = VDEC_NEED_HINT;
++					schedule_work(&notify_work);
+ 				}
+ 			}
+ 		}
+@@ -2759,7 +2760,6 @@
+ static int vh264_stop(int mode)
+ {
+ 
+-
+ 	if (stat & STAT_VDEC_RUN) {
+ 		amvdec_stop();
+ 		stat &= ~STAT_VDEC_RUN;
+diff -ur original/drivers/frame_provider/decoder/h264_multi/vmh264.c modified/drivers/frame_provider/decoder/h264_multi/vmh264.c
+--- original/drivers/frame_provider/decoder/h264_multi/vmh264.c	2018-09-21 07:30:41.000000000 +0300
++++ modified/drivers/frame_provider/decoder/h264_multi/vmh264.c	2018-12-31 04:08:02.186062620 +0300
+@@ -3783,6 +3783,7 @@
+ 						FIX_FRAME_RATE_OFF;
+ 					hw->pts_duration = 0;
+ 					hw->frame_dur = frame_dur_es;
++					hw_to_vdec(hw)->fr_hint_state = VDEC_NEED_HINT;
+ 					schedule_work(&hw->notify_work);
+ 					dpb_print(DECODE_ID(hw),
+ 						PRINT_FLAG_DEC_DETAIL,
+@@ -5102,6 +5103,8 @@
+ 		vstatus->frame_rate = -1;
+ 	vstatus->error_count = 0;
+ 	vstatus->status = hw->stat;
++	vstatus->frame_dur = hw->frame_dur;
++	vstatus->drop_frame_count = hw->skip_frame_count;
+ 	snprintf(vstatus->vdec_name, sizeof(vstatus->vdec_name),
+ 		"%s-%02d", DRIVER_NAME, hw->id);
+ 
+@@ -5637,10 +5640,10 @@
+ 					struct vdec_h264_hw_s, notify_work);
+ 	struct vdec_s *vdec = hw_to_vdec(hw);
+ 	if (vdec->fr_hint_state == VDEC_NEED_HINT) {
++		vdec->fr_hint_state = VDEC_HINTED;
+ 		vf_notify_receiver(vdec->vf_provider_name,
+ 				VFRAME_EVENT_PROVIDER_FR_HINT,
+ 				(void *)((unsigned long)hw->frame_dur));
+-		vdec->fr_hint_state = VDEC_HINTED;
+ 	}
+ 
+ 	return;
+@@ -7198,6 +7201,7 @@
+ 
+ 	if (pdata->sys_info)
+ 		hw->vh264_amstream_dec_info = *pdata->sys_info;
++
+ #if 0
+ 	if (NULL == hw->sei_data_buffer) {
+ 		hw->sei_data_buffer =
+@@ -7228,6 +7232,11 @@
+ 		h264_free_hw_stru(&pdev->dev, (void *)hw);
+ 		return -ENODEV;
+ 	}
++
++	/* update vdec sysinfo from hw */
++	if (pdata->sys_info)
++		pdata->sys_info->rate = hw->frame_dur;
++
+ #ifdef MH264_USERDATA_ENABLE
+ 	vmh264_crate_userdata_manager(hw,
+ 			hw->sei_user_data_buffer,
+diff -ur original/drivers/frame_provider/decoder/h265/vh265.c modified/drivers/frame_provider/decoder/h265/vh265.c
+--- original/drivers/frame_provider/decoder/h265/vh265.c	2018-09-21 07:30:41.000000000 +0300
++++ modified/drivers/frame_provider/decoder/h265/vh265.c	2018-12-31 02:25:59.895931182 +0300
+@@ -7637,9 +7637,8 @@
+ 	struct hevc_state_s *hevc = (struct hevc_state_s *) data;
+ 	unsigned int dec_status = hevc->dec_status;
+ 	int i, ret;
+-#ifdef CONFIG_AMLOGIC_MEDIA_ENHANCEMENT_DOLBYVISION
+ 	struct vdec_s *vdec = hw_to_vdec(hevc);
+-#endif
++
+ 	if (hevc->eos)
+ 		return IRQ_HANDLED;
+ 	if (
+@@ -8227,6 +8226,7 @@
+ 					div_u64(96000ULL *
+ 						vui_num_units_in_tick,
+ 						vui_time_scale);
++				vdec->fr_hint_state = VDEC_NEED_HINT;
+ 					if (hevc->get_frame_dur != true)
+ 						schedule_work(
+ 						&hevc->notify_work);
+diff -ur original/drivers/frame_provider/decoder/mpeg12/vmpeg12.c modified/drivers/frame_provider/decoder/mpeg12/vmpeg12.c
+--- original/drivers/frame_provider/decoder/mpeg12/vmpeg12.c	2018-09-21 07:30:41.000000000 +0300
++++ modified/drivers/frame_provider/decoder/mpeg12/vmpeg12.c	2018-12-31 02:36:30.108546861 +0300
+@@ -269,6 +269,7 @@
+ 	else {
+ 		int index = (READ_VREG(MREG_SEQ_INFO) >> 4) & 0xf;
+ 		vf->duration = frame_dur = frame_rate_tab[index];
++		fr_hint_status = VDEC_NEED_HINT;
+ 		schedule_work(&notify_work);
+ 	}
+ 
+@@ -1969,13 +1970,12 @@
+ 					 NULL);
+ 	vf_reg_provider(&vmpeg_vf_prov);
+ #endif
+-	if (vmpeg12_amstream_dec_info.rate != 0) {
+-		if (!is_reset)
+-			vf_notify_receiver(PROVIDER_NAME,
+-				VFRAME_EVENT_PROVIDER_FR_HINT,
+-				(void *)
+-				((unsigned long)
+-				vmpeg12_amstream_dec_info.rate));
++	if (vmpeg12_amstream_dec_info.rate != 0 && !is_reset) {
++		vf_notify_receiver(PROVIDER_NAME,
++			VFRAME_EVENT_PROVIDER_FR_HINT,
++			(void *)
++			((unsigned long)
++			vmpeg12_amstream_dec_info.rate));
+ 		fr_hint_status = VDEC_HINTED;
+ 	} else
+ 		fr_hint_status = VDEC_NEED_HINT;
+@@ -2086,7 +2086,7 @@
+ 	}
+ 
+ 	if (stat & STAT_VF_HOOK) {
+-		if (fr_hint_status == VDEC_HINTED && !is_reset)
++		if (fr_hint_status == VDEC_HINTED/* && !is_reset*/)
+ 			vf_notify_receiver(PROVIDER_NAME,
+ 				VFRAME_EVENT_PROVIDER_FR_END_HINT, NULL);
+ 		fr_hint_status = VDEC_NO_NEED_HINT;
+diff -ur original/drivers/frame_provider/decoder/mpeg12/vmpeg12_multi.c modified/drivers/frame_provider/decoder/mpeg12/vmpeg12_multi.c
+--- original/drivers/frame_provider/decoder/mpeg12/vmpeg12_multi.c	2018-09-21 07:30:41.000000000 +0300
++++ modified/drivers/frame_provider/decoder/mpeg12/vmpeg12_multi.c	2018-12-31 02:24:35.174545510 +0300
+@@ -342,6 +342,7 @@
+ 	else {
+ 		vf->duration = hw->frame_dur =
+ 		frame_rate_tab[(READ_VREG(MREG_SEQ_INFO) >> 4) & 0xf];
++		hw_to_vdec(hw)->fr_hint_state = VDEC_NEED_HINT;
+ 		schedule_work(&hw->notify_work);
+ 	}
+ 
+diff -ur original/drivers/frame_provider/decoder/mpeg4/vmpeg4.c modified/drivers/frame_provider/decoder/mpeg4/vmpeg4.c
+--- original/drivers/frame_provider/decoder/mpeg4/vmpeg4.c	2018-09-21 07:30:41.000000000 +0300
++++ modified/drivers/frame_provider/decoder/mpeg4/vmpeg4.c	2018-12-31 02:18:11.917801037 +0300
+@@ -334,10 +334,8 @@
+ 					(rate >> 16) * DURATION_UNIT /
+ 					(rate & 0xffff);
+ 				duration = vmpeg4_amstream_dec_info.rate;
+-				if (fr_hint_status == VDEC_NEED_HINT) {
+-					schedule_work(&notify_work);
+-					fr_hint_status = VDEC_HINTED;
+-				}
++				fr_hint_status = VDEC_NEED_HINT;
++				schedule_work(&notify_work);
+ 			} else if (rate_detect < RATE_DETECT_COUNT) {
+ 				if (vop_time_inc < last_vop_time_inc) {
+ 					duration =
+@@ -670,11 +668,14 @@
+ static void vmpeg4_notify_work(struct work_struct *work)
+ {
+ 	pr_info("frame duration changed %d\n", vmpeg4_amstream_dec_info.rate);
+-	vf_notify_receiver(PROVIDER_NAME,
++	if (fr_hint_status == VDEC_NEED_HINT) {
++		vf_notify_receiver(PROVIDER_NAME,
+ 					VFRAME_EVENT_PROVIDER_FR_HINT,
+ 					(void *)
+ 					((unsigned long)
+ 					vmpeg4_amstream_dec_info.rate));
++		fr_hint_status = VDEC_HINTED;
++	}
+ 	return;
+ }
+ 
+@@ -1086,13 +1087,12 @@
+ 					 NULL);
+ 	vf_reg_provider(&vmpeg_vf_prov);
+ #endif
+-	if (vmpeg4_amstream_dec_info.rate != 0) {
+-		if (!is_reset)
+-			vf_notify_receiver(PROVIDER_NAME,
+-						VFRAME_EVENT_PROVIDER_FR_HINT,
+-						(void *)
+-						((unsigned long)
+-						vmpeg4_amstream_dec_info.rate));
++	if (vmpeg4_amstream_dec_info.rate != 0 && !is_reset) {
++		vf_notify_receiver(PROVIDER_NAME,
++					VFRAME_EVENT_PROVIDER_FR_HINT,
++					(void *)
++					((unsigned long)
++					vmpeg4_amstream_dec_info.rate));
+ 		fr_hint_status = VDEC_HINTED;
+ 	} else
+ 		fr_hint_status = VDEC_NEED_HINT;
+@@ -1165,7 +1165,7 @@
+ 	}
+ 
+ 	if (stat & STAT_VF_HOOK) {
+-		if (fr_hint_status == VDEC_HINTED && !is_reset)
++		if (fr_hint_status == VDEC_HINTED/* && !is_reset*/)
+ 			vf_notify_receiver(PROVIDER_NAME,
+ 				VFRAME_EVENT_PROVIDER_FR_END_HINT, NULL);
+ 		fr_hint_status = VDEC_NO_NEED_HINT;
+diff -ur original/drivers/frame_provider/decoder/utils/vdec.c modified/drivers/frame_provider/decoder/utils/vdec.c
+--- original/drivers/frame_provider/decoder/utils/vdec.c	2018-09-21 07:30:41.000000000 +0300
++++ modified/drivers/frame_provider/decoder/utils/vdec.c	2018-12-31 04:07:49.777008271 +0300
+@@ -248,7 +248,7 @@
+ int vdec_set_isreset(struct vdec_s *vdec, int isreset)
+ {
+ 	vdec->is_reset = isreset;
+-	pr_info("is_reset=%d\n", isreset);
++	pr_info("%s: is_reset=%d\n", __FUNCTION__, isreset);
+ 	if (vdec->set_isreset)
+ 		return vdec->set_isreset(vdec, isreset);
+ 	return 0;
+@@ -1630,13 +1630,12 @@
+ 			vdec_core->hint_fr_vdec = vdec;
+ 
+ 		if (vdec_core->hint_fr_vdec == vdec) {
+-			if (p->sys_info->rate != 0) {
+-				if (!vdec->is_reset)
+-					vf_notify_receiver(p->vf_provider_name,
+-						VFRAME_EVENT_PROVIDER_FR_HINT,
+-						(void *)
+-						((unsigned long)
+-						p->sys_info->rate));
++			if (p->sys_info->rate != 0 && !vdec->is_reset) {
++				vf_notify_receiver(p->vf_provider_name,
++					VFRAME_EVENT_PROVIDER_FR_HINT,
++					(void *)
++					((unsigned long)
++					p->sys_info->rate));
+ 				vdec->fr_hint_state = VDEC_HINTED;
+ 			} else {
+ 				vdec->fr_hint_state = VDEC_NEED_HINT;
+@@ -1679,12 +1678,13 @@
+ 		if (!vdec_single(vdec)) {
+ 			if (vdec_core->hint_fr_vdec == vdec
+ 			&& vdec->fr_hint_state == VDEC_HINTED
+-			&& !vdec->is_reset)
++			/*&& !vdec->is_reset -- Android MediCodec always resets video before stopping */) {
+ 				vf_notify_receiver(
+ 					vdec->vf_provider_name,
+ 					VFRAME_EVENT_PROVIDER_FR_END_HINT,
+ 					NULL);
+-			vdec->fr_hint_state = VDEC_NO_NEED_HINT;
++				vdec->fr_hint_state = VDEC_NO_NEED_HINT;
++			}
+ 		}
+ 		vf_unreg_provider(&vdec->vframe_provider);
+ 	}
+diff -ur original/drivers/frame_provider/decoder/vc1/vvc1.c modified/drivers/frame_provider/decoder/vc1/vvc1.c
+--- original/drivers/frame_provider/decoder/vc1/vvc1.c	2018-09-21 07:30:41.000000000 +0300
++++ modified/drivers/frame_provider/decoder/vc1/vvc1.c	2018-12-31 04:07:18.319870513 +0300
+@@ -127,10 +127,12 @@
+ static u32 avi_flag;
+ static u32 vvc1_ratio;
+ static u32 vvc1_format;
++static u32 fr_hint_status;
+ 
+ static u32 intra_output;
+ static u32 frame_width, frame_height, frame_dur;
+ static u32 saved_resolution;
++static u32 saved_frame_dur;
+ static u32 pts_by_offset = 1;
+ static u32 total_frame;
+ static u32 next_pts;
+@@ -921,6 +923,7 @@
+ 
+ 	next_pts_us64 = 0;
+ 	saved_resolution = 0;
++	saved_frame_dur = 0;
+ 	frame_width = frame_height = frame_dur = 0;
+ #ifdef DEBUG_PTS
+ 	pts_hit = pts_missed = pts_i_hit = pts_i_missed = 0;
+@@ -978,14 +981,24 @@
+ 
+ static void vvc1_set_clk(struct work_struct *work)
+ {
+-	if (frame_dur > 0 && saved_resolution !=
+-		frame_width * frame_height * (96000 / frame_dur)) {
++	if (frame_dur > 0) {
+ 		int fps = 96000 / frame_dur;
++		u32 resolution = frame_width * frame_height * fps;
++		if (saved_resolution != resolution) {
++			saved_resolution = resolution;
++			vdec_source_changed(VFORMAT_VC1,
++				frame_width, frame_height, fps);
++		}
+ 
+-		saved_resolution = frame_width * frame_height * fps;
+-		vdec_source_changed(VFORMAT_VC1,
+-			frame_width, frame_height, fps);
++		if (saved_frame_dur != frame_dur) {
++			saved_frame_dur = frame_dur;
++			vf_notify_receiver(PROVIDER_NAME,
++				VFRAME_EVENT_PROVIDER_FR_HINT,
++				(void *)((unsigned long)frame_dur));
++			fr_hint_status = VDEC_HINTED;
++		}
+ 	}
++
+ }
+ 
+ static void vvc1_put_timer_func(unsigned long arg)
+@@ -1102,11 +1115,15 @@
+ 	vf_reg_provider(&vvc1_vf_prov);
+ #endif
+ 
+-	if (!is_reset)
++	if (vvc1_amstream_dec_info.rate && !is_reset) {
+ 		vf_notify_receiver(PROVIDER_NAME,
+ 				VFRAME_EVENT_PROVIDER_FR_HINT,
+ 				(void *)
+ 				((unsigned long)vvc1_amstream_dec_info.rate));
++		fr_hint_status = VDEC_HINTED;
++	} else {
++		fr_hint_status = VDEC_NEED_HINT;
++	}
+ 
+ 	stat |= STAT_VF_HOOK;
+ 
+@@ -1172,10 +1189,11 @@
+ 	}
+ 
+ 	if (stat & STAT_VF_HOOK) {
+-		if (!is_reset)
++		if (fr_hint_status == VDEC_HINTED /*&& !is_reset*/)
+ 			vf_notify_receiver(PROVIDER_NAME,
+ 					VFRAME_EVENT_PROVIDER_FR_END_HINT,
+ 					NULL);
++		fr_hint_status = VDEC_NO_NEED_HINT;
+ 
+ 		vf_unreg_provider(&vvc1_vf_prov);
+ 		stat &= ~STAT_VF_HOOK;

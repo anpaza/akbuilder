@@ -1,0 +1,10 @@
+#!/bin/sh
+
+PATCH=../../../build/patches/linux-4.9/004-afr.patch
+
+cat > $PATCH << EOF
+Add support for the automatic framerate daemon (afrd).
+
+EOF
+
+diff -ur original modified >> $PATCH

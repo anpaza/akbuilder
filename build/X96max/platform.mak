@@ -31,15 +31,17 @@ INITRAMFS.MODULES += btusb.ko btintel.ko btbcm.ko btrtl.ko
 # NFS support
 INITRAMFS.MODULES += nfsd.ko exportfs.ko nfs.ko nfsv2.ko nfsv3.ko nfs_acl.ko grace.ko \
 	lockd.ko sunrpc.ko rpcsec_gss_krb5.ko auth_rpcgss.ko
-#INITRAMFS.EXTRA = $(addprefix $(INITRAMFS.OUT)tree/,vfdd vfdd.ini afrd afrd.ini)
+INITRAMFS.EXTRA = $(addprefix $(INITRAMFS.OUT)tree/,vfdd vfdd.ini afrd afrd.ini)
 INITRAMFS.DIRS = acct boot cache config data dev lib mnt oem odm proc storage system sys vendor
 
-define ___UNUSED_PLATFORM.BUILD.EXTRA
+define PLATFORM.BUILD.EXTRA
 # The directory for the linux_vfd project (https://github.com/anpaza/linux_vfd)
 LINUX_VFD_DIR ?= ../linux_vfd/
 # and we want the 32-bit ARM daemon for LCD display on initramfs
 VFDD_ARCH = armeabi-v7a
 include build/vfdd.mak
+# Install vdd into kernel tree
+PLATFORM.KERNEL_COPY += ln -s $$(call CFN,$$(LINUX_VFD_DIR)/vfd) $$(KERNEL.OUT)drivers/amlogic/input/$$(NL)
 
 # The directory for the automatic framerate daemon (https://github.com/anpaza/afrd)
 AFRD_DIR ?= ../afrd/
@@ -62,18 +64,18 @@ $(KERNEL.DTS.DIR)g12a_x96max_2g.dts: $(PLATFORM.DIR)x96max-dts-2g.patch $(KERNEL
 	$(call APPLY.PATCH,$<,,-o $@ $(word 2,$^))
 
 # How vfdd files gets copied to initramfs build dir
-#$(INITRAMFS.OUT)tree/vfdd: $(VFDD_BIN) $(INITRAMFS.OUT).stamp.copy
-#	$(call CP,$<,$@)
+$(INITRAMFS.OUT)tree/vfdd: $(VFDD_BIN) $(INITRAMFS.OUT).stamp.copy
+	$(call CP,$<,$@)
 
-#$(INITRAMFS.OUT)tree/vfdd.ini: $(VFDD_DIR)vfdd.ini $(INITRAMFS.OUT).stamp.copy
-#	$(call CP,$<,$@)
+$(INITRAMFS.OUT)tree/vfdd.ini: $(VFDD_DIR)config/vfdd-x96max.ini $(INITRAMFS.OUT).stamp.copy
+	$(call CP,$<,$@)
 
 # How afrd files gets copied to initramfs build dir
-#$(INITRAMFS.OUT)tree/afrd: $(AFRD_BIN) $(INITRAMFS.OUT).stamp.copy
-#	$(call CP,$<,$@)
+$(INITRAMFS.OUT)tree/afrd: $(AFRD_BIN) $(INITRAMFS.OUT).stamp.copy
+	$(call CP,$<,$@)
 
-#$(INITRAMFS.OUT)tree/afrd.ini: $(AFRD_DIR)afrd.ini $(INITRAMFS.OUT).stamp.copy
-#	$(call CP,$<,$@)
+$(INITRAMFS.OUT)tree/afrd.ini: $(AFRD_DIR)afrd.ini $(INITRAMFS.OUT).stamp.copy
+	$(call CP,$<,$@)
 
 .PHONY: deploy
 HELP += $(NL)deploy - Deploy the final kernel files for $(PLATFORM)

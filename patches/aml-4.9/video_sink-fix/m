@@ -1,0 +1,11 @@
+#!/bin/sh
+
+PATCH=../../../build/patches/linux-4.9/002-video_sink-fix.patch
+
+cat > $PATCH << EOF
+The platform_type bool shouldn't be exported from video_sink driver
+as it conflicts with a variable with same name from ppmgr.
+
+EOF
+
+diff -ur original modified >> $PATCH

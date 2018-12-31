@@ -4,6 +4,7 @@
 # This is a common source of Android security bugs.
 #
 
+import /init.zap.rc
 import /init.environ.rc
 import /init.usb.rc
 #import /init.${ro.hardware}.rc
@@ -735,13 +736,3 @@ on property:ro.debuggable=1
 service flash_recovery /system/bin/install-recovery.sh
     class main
     oneshot
-
-on early-fs
-    start modules_install
-    wait_for_prop sys.modules_install 1
-
-service modules_install /modules_install.sh
-    disabled
-    oneshot
-    group shell root
-    seclabel u:r:shell:s0

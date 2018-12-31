@@ -1,0 +1,19 @@
+#!/bin/sh
+
+PATCH=../../../build/VontarZ5/kernel/z5-dts.patch
+
+cat > $PATCH << EOF
+This patch adds a section for the old remote control driver from
+Beijing-platform. There is already a remote control section in
+mesongxm.dti (which is included from gxm_q201*.dts), but that one
+is for the new driver (which must be disabled in kernel config).
+
+Also it modifies the Ethernet section to specify a gigabit
+controller rather than the 100MBit used in q201 dts.
+
+Also it adds the dvb device present in the original Vontar Z5 dts file -
+although it doesn't seem present on the board, but just in case.
+
+EOF
+
+diff -u gxm_q201_2g.dts gxm_z5_2g.dts >> $PATCH

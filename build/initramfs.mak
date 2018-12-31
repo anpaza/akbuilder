@@ -21,7 +21,7 @@ initramfs: $(INITRAMFS.FILE)
 
 $(INITRAMFS.FILE): $(INITRAMFS.OUT).stamp.copy $(INITRAMFS.MODFILES) $(INITRAMFS.EXTRA)
 	cd $(INITRAMFS.OUT)tree && \
-	find . | cpio --quiet -o -H newc | gzip > $(call CFN,$(INITRAMFS.FILE))
+	find . | cpio --quiet -o -H newc -R 0:0 | gzip > $(call CFN,$(INITRAMFS.FILE))
 
 # git does not store empty dirs, so we have to create them manually
 $(INITRAMFS.OUT).stamp.copy: $(call DIRSTAMP,$(INITRAMFS.OUT)) $(wildcard $(INITRAMFS.DIR)/*)
@@ -40,10 +40,15 @@ $(INITRAMFS.MODDIR)modules.dep: $(INITRAMFS.MODFILES) $(KERNEL.FILE)
 	rm -f $(INITRAMFS.MODDIR)modules.{*.bin,devname,softdep,builtin,order}
 
 define INITRAMFS.MKRULE.MODULE
+$(if $2,\
 $$(INITRAMFS.MODDIR)$1: $2 $$(INITRAMFS.OUT).stamp.copy
 	$$(call MKDIR,$$(@D))
 	$$(call CP,$$<,$$@)
-
+,$$(warning INITRAMFS.DEP.$_ is not defined))
 endef
 
 $(eval $(foreach _,$(INITRAMFS.MODULES),$(call INITRAMFS.MKRULE.MODULE,$_,$(INITRAMFS.DEP.$_))))
+
+.PHONY: initramfs-showrules
+initramfs-showrules:
+	$(call SAY,$(foreach _,$(INITRAMFS.MODULES),$(call INITRAMFS.MKRULE.MODULE,$_,$(INITRAMFS.DEP.$_))\n))

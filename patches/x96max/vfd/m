@@ -1,0 +1,10 @@
+#!/bin/sh
+
+PATCH=../../../build/patches/linux-4.9/003-vfd.patch
+
+cat > $PATCH << EOF
+Integrate vfd driver into kernel build system.
+
+EOF
+
+diff -ur original modified >> $PATCH

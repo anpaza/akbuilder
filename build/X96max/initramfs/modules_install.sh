@@ -10,7 +10,7 @@ grep -q "^[^ ]* $MODDIR " /proc/mounts && umount $MODDIR
 grep -q "^[^ ]* /vendor/lib/modules " /proc/mounts && umount /vendor/lib/modules
 
 # Сделаем копию модулей ядра на разделе /odm
-if [ ! -d /odm$MODDIR ] ; then
+if [ ! -d /odm$MODDIR -o $MODDIR/modules.dep -nt /odm$MODDIR/modules.dep ] ; then
 	mount -o remount,rw /odm
 
 	# Если есть модули от другой версии kernel-zap, подметаем
@@ -35,3 +35,6 @@ mount --bind /odm$MODDIR /vendor/lib/modules
 
 # Даём добро на дальнейшую загрузку
 setprop sys.modules_install 1
+
+# Загрузим btusb т.к. у нас он зависит ещё от трёх драйверов
+modprobe btusb

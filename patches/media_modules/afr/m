@@ -1,0 +1,10 @@
+#!/bin/sh
+
+PATCH=../../../build/patches/media_modules/001-afr.patch
+
+cat > $PATCH << EOF
+Fix automatic framerate support, which is badly broken.
+
+EOF
+
+diff -ur original modified >> $PATCH

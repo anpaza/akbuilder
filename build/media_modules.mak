@@ -1,7 +1,7 @@
 # The rules to build the "media modules" out-of-tree kernel drivers
 # These are the AMLogic decoders for various video formats.
 
-.PHONY: kd-mediamod kd-mediamod-clean
+.PHONY: kd-mm kd-mm-clean
 
 ifndef KD_MEDIAMOD.DIR
 $(error Media modules kernel driver source directory not defined)
@@ -10,8 +10,8 @@ endif
 KD_MEDIAMOD.OUT = $(call CFN,.)/$(OUT)$(notdir $(KD_MEDIAMOD.DIR))-$(KERNEL.RELEASE)/
 OUTDIRS += $(KD_MEDIAMOD.OUT)
 
-HELP += $(NL)kd-mediamod - Build the video decoder drivers for $(PLATFORM)
-HELP += $(NL)kd-mediamod-clean - Clean the generated files for the video decoder drivers
+HELP += $(NL)kd-mm - Build the video decoder drivers for $(PLATFORM)
+HELP += $(NL)kd-mm-clean - Clean the generated files for the video decoder drivers
 
 KD_MEDIAMOD.MODULES = firmware.ko vpu.ko stream_input.ko media_clock.ko decoder_common.ko \
 	aml_hardware_dmx.ko encoder.ko amvdec_mmjpeg.ko amvdec_mmpeg4.ko amvdec_vc1.ko \
@@ -26,11 +26,11 @@ KD_MEDIAMOD.MAKE = $(MAKE) -C $(KD_MEDIAMOD.OUT:/=) KDIR=$(call CFN,$(KERNEL.OUT
 	TOOLS=$(KERNEL_GCC_PREFIX) \
 	-f Media.mk
 
-kd-mediamod: $(KD_MEDIAMOD.FILES)
+kd-mm: $(KD_MEDIAMOD.FILES)
 
-kernel-clean: kd-mediamod-clean
+kernel-clean: kd-mm-clean
 
-kd-mediamod-clean: $(KD_MEDIAMOD.OUT).stamp.patch
+kd-mm-clean: $(KD_MEDIAMOD.OUT).stamp.patch
 	+$(KD_MEDIAMOD.MAKE) clean
 
 $(KD_MEDIAMOD.FILES): $(KD_MEDIAMOD.OUT).stamp.build
@@ -47,3 +47,7 @@ $(KD_MEDIAMOD.OUT).stamp.copy: $(call DIRSTAMP,$(KD_MEDIAMOD.OUT))
 $(KD_MEDIAMOD.OUT).stamp.patch: $(KD_MEDIAMOD.OUT).stamp.copy
 	$(foreach _,$(KD_MEDIAMOD.PATCHES),$(call APPLY.PATCH,$_,$(KD_MEDIAMOD.OUT),-p 1))
 	$(call TOUCH,$@)
+
+.PHONY: kd-mm-touch
+kd-mm-touch:
+	$(call RM,$(KD_MEDIAMOD.OUT).stamp.build)

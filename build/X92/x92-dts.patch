@@ -9,7 +9,7 @@ controller rather than the 100MBit used in q201 dts, and disables
 the USB3 hub since there are no USB3 connectors in X92.
 
 --- gxm_q201_2g.dts	2017-05-15 16:45:50.000000000 +0300
-+++ gxm_x92_2g.dts	2017-05-27 00:36:06.171291497 +0300
++++ gxm_x92_2g.dts	2018-12-29 02:56:31.494751691 +0300
 @@ -27,7 +27,7 @@
  / {
  	model = "Amlogic";
@@ -46,9 +46,9 @@ the USB3 hub since there are no USB3 connectors in X92.
 +		compatible = "amlogic,aml_vfd";
 +		dev_name = "meson-vfd";
 +		status = "okay";
-+		gpios = <&gpio GPIODV_17 GPIO_ACTIVE_HIGH>,  /* STB */
-+			<&gpio GPIODV_16 GPIO_ACTIVE_HIGH>,  /* CLK */
-+			<&gpio GPIODV_15 GPIO_ACTIVE_HIGH>;  /* DI/DO */
++		gpios = <&gpio GPIODV_15 GPIO_ACTIVE_HIGH>,     /* DI/DO */
++			<&gpio GPIODV_16 GPIO_ACTIVE_HIGH>,     /* CLK */
++			<&gpio GPIODV_17 GPIO_ACTIVE_HIGH>;     /* STB */
 +		/* dot LED names */
 +		dot_names = "APPS", "SETUP", "USB", "CARD", ":", "HDMI", "CVBS";
 +		/* dot LED <16_bit_word bit_number> in raw display buffer ('overlay') */

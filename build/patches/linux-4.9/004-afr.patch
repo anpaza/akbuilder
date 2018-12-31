@@ -1,0 +1,97 @@
+Add support for the automatic framerate daemon (afrd).
+
+diff -ur original/drivers/amlogic/media/video_processor/ionvideo/ionvideo.c modified/drivers/amlogic/media/video_processor/ionvideo/ionvideo.c
+--- original/drivers/amlogic/media/video_processor/ionvideo/ionvideo.c	2018-09-21 07:30:58.000000000 +0300
++++ modified/drivers/amlogic/media/video_processor/ionvideo/ionvideo.c	2018-12-31 04:00:58.658209684 +0300
+@@ -26,6 +26,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/amlogic/major.h>
+ 
++#define CONFIG_AM_VOUT
++
+ #define IONVIDEO_MODULE_NAME "ionvideo"
+ 
+ #define IONVIDEO_VERSION "1.0"
+diff -ur original/drivers/amlogic/media/vout/hdmitx/hdmi_tx_20/hdmi_tx_main.c modified/drivers/amlogic/media/vout/hdmitx/hdmi_tx_20/hdmi_tx_main.c
+--- original/drivers/amlogic/media/vout/hdmitx/hdmi_tx_20/hdmi_tx_main.c	2018-09-21 07:30:58.000000000 +0300
++++ modified/drivers/amlogic/media/vout/hdmitx/hdmi_tx_20/hdmi_tx_main.c	2018-12-30 02:43:04.451610778 +0300
+@@ -4050,6 +4050,7 @@
+ 	hdmitx_device.nb.notifier_call = hdmitx_reboot_notifier;
+ 	register_reboot_notifier(&hdmitx_device.nb);
+ 
++	hdmitx_vout_server.dev = dev;
+ 	vout_register_server(&hdmitx_vout_server);
+ #ifdef CONFIG_AMLOGIC_VOUT2_SERVE
+ 	vout2_register_server(&hdmitx_vout2_server);
+diff -ur original/drivers/amlogic/media/vout/vout_serve/vout_func.c modified/drivers/amlogic/media/vout/vout_serve/vout_func.c
+--- original/drivers/amlogic/media/vout/vout_serve/vout_func.c	2018-09-21 07:30:58.000000000 +0300
++++ modified/drivers/amlogic/media/vout/vout_serve/vout_func.c	2018-12-31 03:56:47.952114840 +0300
+@@ -20,6 +20,7 @@
+ #include <linux/delay.h>
+ #include <linux/sched.h>
+ #include <linux/err.h>
++#include <linux/device.h>
+ 
+ /* Amlogic Headers */
+ #include <linux/amlogic/iomap.h>
+@@ -28,6 +29,8 @@
+ /* Local Headers */
+ #include "vout_func.h"
+ 
++#define UEVENT_FRAMERATE_AUTOMATION_MODE
++
+ static DEFINE_MUTEX(vout_mutex);
+ 
+ static struct vout_module_s vout_module = {
+@@ -355,6 +358,19 @@
+ 	}
+ 
+ 	mutex_unlock(&vout_mutex);
++
++#ifdef UEVENT_FRAMERATE_AUTOMATION_MODE
++        if (p_server->dev) {
++		char *env[2];
++		char msg[32];
++		snprintf(msg, sizeof (msg), "FRAME_RATE_HINT%s=%d",
++		    index == 1 ? "" : "2", duration);
++		env[0] = msg;
++		env[1] = NULL;
++		kobject_uevent_env(&p_server->dev->kobj, KOBJ_CHANGE, env);
++		VOUTPR ("uevent %s\n", msg);
++	}
++#endif
+ 	return ret;
+ }
+ EXPORT_SYMBOL(vout_func_set_vframe_rate_hint);
+@@ -382,6 +398,20 @@
+ 	}
+ 
+ 	mutex_unlock(&vout_mutex);
++
++#ifdef UEVENT_FRAMERATE_AUTOMATION_MODE
++	if (p_server->dev) {
++		char *env[2];
++		char msg[32];
++		snprintf(msg, sizeof (msg), "FRAME_RATE_END_HINT%s",
++		    index == 1 ? "" : "2");
++		env[0] = msg;
++		env[1] = NULL;
++		kobject_uevent_env(&p_server->dev->kobj, KOBJ_CHANGE, env);
++		VOUTPR ("uevent %s\n", msg);
++	}
++#endif
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL(vout_func_set_vframe_rate_end_hint);
+diff -ur original/include/linux/amlogic/media/vout/vout_notify.h modified/include/linux/amlogic/media/vout/vout_notify.h
+--- original/include/linux/amlogic/media/vout/vout_notify.h	2018-09-21 07:31:02.000000000 +0300
++++ modified/include/linux/amlogic/media/vout/vout_notify.h	2018-12-30 02:37:52.666244565 +0300
+@@ -54,6 +54,7 @@
+ struct vout_server_s {
+ 	struct list_head list;
+ 	char *name;
++	struct device *dev;
+ 	struct vout_op_s op;
+ };
+ 
