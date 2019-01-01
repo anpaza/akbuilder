@@ -76,9 +76,13 @@ Command line examples:
     make bootimg PLATFORM=X92 BOOTIMG.FILE=boot-2G.img KERNEL.DTS=gxm_x92_2g.dts
     make bootimg PLATFORM=X92 BOOTIMG.FILE=boot-3G.img KERNEL.DTS=gxm_x92_3g.dts
 
-- Try the 4.19 kernel (does not work yet :-P)
+- Try the 4.19 kernel on X92:
 
     make bootfiles PLATFORM=X92 PLATFORM_KERNEL_VER=4.19
+
+- Build the image for X96 Max box:
+
+    make bootfiles PLATFORM=X96max BOOTIMG.FILE=kernel.img KERNEL.DTS=g12a_x96max_4g.dts
 
 
 CREDITS
