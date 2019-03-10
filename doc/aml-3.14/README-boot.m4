@@ -66,3 +66,10 @@ If something went wrong, you can boot into recovery again and
 run the installer again. It will detect the backup copy and will
 uninstall instead of installing. After a successful restore,
 the backup copy will be removed.
+
+After booting with the new kernel, sometimes the MAC address of
+the Ethernet device may change. I don't understand the chinese
+alchemy behind this MAC address selection, but I thought I'd
+better warn you. There's nothing wrong with it, but if your
+home DHCP server binds IP addresses to MAC addresses, you will
+have to modify its settings.
