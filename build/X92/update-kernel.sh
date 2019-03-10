@@ -1,5 +1,5 @@
 
-# --- # kernel-zap UPDATE uninstall support script # --- #
+# --- # kernel-zap UPDATE un/install support script # --- #
 
 BACKUP=/data/local/backup-kernel-zap
 
@@ -14,7 +14,8 @@ restore_failed() {
 	exit 1
 }
 
-mount /dev/block/data /data
+MNT_DATA=`grep -q '^/dev/block/data' /proc/mounts`
+test -z "$MNT_DATA" || mount /dev/block/data /data
 
 if test -f $BACKUP/.ok ; then
 	ui_print "Restoring kernel from backup in $BACKUP"
@@ -32,4 +33,6 @@ dd if=/dev/dtb of=$BACKUP/dtb.img || backup_failed "DTB"
 touch $BACKUP/.ok
 ui_print "Backup done"
 
-umount /data
+test -z "$MNT_DATA" || umount /data
+
+# --- --- --- --- --- --- --- --- --- --- --- --- --- --- #

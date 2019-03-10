@@ -69,9 +69,9 @@ define DEPLOY
 	for x in doc/aml-$(PLATFORM.KERNEL_VER)/{README-boot*.m4,CHANGES*.m4} ; do \
 		m4 -DPLATFORM="$(PLATFORM)" $$x > $(OUT)deploy/$1/`basename $$x .m4`.txt ; \
 	done
-	tools/upd-maker/upd-maker -n "Custom kernel for X92 by zap" -d q201 \
+	tools/upd-maker/upd-maker -n "Custom kernel for X92 by zap" \
 		-fs $(PLATFORM.DIR)update-kernel.sh \
-		-o $(OUT)deploy/UPDATE_$1_kernel$(KERNEL.SUFFIX)-$(BDATE).zip \
+		-o $(OUT)deploy/$1/UPDATE_$1_kernel$(KERNEL.SUFFIX)-$(BDATE).zip \
 		$(OUT)deploy/$1/kernel.img $(OUT)deploy/$1/dtb.img
 endef
 
