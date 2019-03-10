@@ -1,0 +1,126 @@
+# Amlogic AV streaming devices
+/dev/amvideo		0666	media	system
+/dev/ppmgr		0660	media	system
+/dev/amstream_sub	0666	media	system
+/dev/amstream_sub_read	0666	media	system
+/dev/amstream_rm	0666	media	system
+/dev/amstream_mpps	0666	media	system
+/dev/amstream_mpts	0666	media	system
+/dev/amstream_abuf	0666	media	system
+/dev/amstream_vbuf	0666	media	system
+/dev/amstream_hevc	0666	media	system
+/dev/amstream_userdata	0666	media	system
+/dev/audiodsp0		0660	media	system
+/dev/uio0		0660	media	system
+/dev/video0		0660	system  camera
+/dev/video1		0660	system  camera
+/dev/video10		0660	media	system
+/dev/video11		0660	media	system
+/dev/video13		0660	media	system
+/dev/amaudio_utils	0660	media	system
+/dev/amaudio_ctl	0660	media	system
+/dev/amvenc_avc 	0660	media	system
+/dev/amsubtitle 	0660	media	system
+/dev/jpegenc		0660	media	system
+
+#audio data
+/dev/audio_data_debug	0660	media	system
+/dev/amjpegdec		0666	system  system
+/dev/ge2d		0660	system  system
+/dev/vdin0		0660	system  system
+/dev/virtmem		0666	system  system
+
+# Mali
+/dev/ump		0666	system  graphics
+/dev/mali		0666	system  graphics
+/dev/mali0		0666	system  graphics
+/dev/ion		0666	system  graphics
+
+#possible serial
+/dev/ttyS1		0660	bluetooth net_bt_stack
+/dev/ttyS2		0660	bluetooth net_bt_stack
+/dev/ttyS3		0666	system	system
+/dev/ttya0		0660	system	system
+/dev/ttya1		0660	system	system
+/dev/ptya0		0660	system	system
+/dev/ptya1		0660	system	system
+/dev/ttyHS2		0666	bluetooth net_bt_stack
+/dev/ttyS20		0664	system	system
+
+#For invensense`s sensors
+/dev/mpu		0666	system	system
+/dev/mpuirq		0666	system	system
+/dev/accelirq		0666	system	system
+/dev/timerirq		0666	system	system
+
+/dev/btusb0		0660	bluetooth net_bt_stack
+
+#
+/dev/graphics/*		0660	root	graphics
+/dev/snd/*		0666	system	audio
+/dev/amaudio_ctl	0660	media	system
+
+# For USB Joysticks
+/dev/input/js*		0664	system	system
+
+/dev/wifi_power		0660	system	wifi
+
+#consumerir
+/dev/irblaster1		0660	system	system
+
+#bluetooth
+/dev/rtk_btusb		0660	bluetooth net_bt_stack
+/sys/devices/bt-dev.*/rfkill/rfkill0	state		0660	bluetooth bluetooth
+/sys/devices/bt-dev.*/rfkill/rfkill0	type		0660	bluetooth bluetooth
+
+#hdmi cec
+/dev/cec		0666	system	system
+/sys/devices/virtual/amhdmitx/amhdmitx0 hpd_state	0664	media	system
+/sys/devices/virtual/amhdmitx/amhdmitx0 config		0666	media	system
+/sys/devices/virtual/amhdmitx/amhdmitx0	aud_output_chs	0664	media	system
+/sys/devices/virtual/amhdmitx/amhdmitx0	disp_mode	0664	media	system
+/sys/devices/virtual/amhdmitx/amhdmitx0 cec		0664	media	system
+/sys/devices/virtual/amhdmitx/amhdmitx0	cec_config	0664	media	system
+/sys/devices/virtual/amhdmitx/amhdmitx0	cec_lang_config	0664	media	system
+/sys/devices/virtual/amhdmitx/amhdmitx0	phy		0664	media	system
+/sys/devices/virtual/amhdmitx/amhdmitx0	avmute		0664	media	system
+/sys/devices/virtual/amhdmitx/amhdmitx0	aud_ch		0664	media	system
+/sys/devices/virtual/amhdmitx/amhdmitx0	force_color_space 0666	media	system
+/sys/devices/virtual/amhdmitx/amhdmitx0	force_color_depth 0666	media	system
+/sys/devices/virtual/amhdmitx/amhdmitx0	force_color_range 0666	media	system
+
+/sys/devices/meson-fb.*/graphics/fb0	osd_afbcd	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	enable_key	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	enable_key_onhold 0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	block_mode	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	freescale_mode	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb1	freescale_mode	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	free_scale	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb1	free_scale	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	free_scale_axis	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb1	free_scale_axis	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	free_scale_switch 0664	media	system
+/sys/devices/meson-fb.*/graphics/fb1	free_scale_switch 0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	window_axis	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb1	window_axis	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	blank		0664	media	system
+/sys/devices/meson-fb.*/graphics/fb1	blank		0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	order		0664	media	system
+/sys/devices/meson-fb.*/graphics/fb1	order		0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	scale		0664	media	system
+/sys/devices/meson-fb.*/graphics/fb1	scale		0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	scale_axis	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb1	scale_axis	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	scale_width	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb1	scale_width	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb0	scale_height	0664	media	system
+/sys/devices/meson-fb.*/graphics/fb1	scale_height	0664	media	system
+
+/sys/devices/virtual/switch/hdmi	state		0660	media	system
+
+/sys/devices/virtual/thermal/thermal_zone* mode		0664	system	system
+/sys/devices/system/clocksource/clocksource0 current_clocksource 0664 system system
+
+/sys/devices/system/cpu/cpu*	cpufreq/scaling_governor 0664	system	system
+/sys/devices/system/cpu/cpu*	cpufreq/hmp_boost	0664	system	system
+/sys/devices/system/cpu/cpu*	online			0664	system	system

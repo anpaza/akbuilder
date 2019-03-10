@@ -1,0 +1,17 @@
+setenv tryboot '
+if fatload ${media} 0 ${loadaddr} @BOOTIMG@ ; then
+    if fatload ${media} 0 ${dtb_mem_addr} dtb.img ; then
+        echo "---@@@ Booting from ${media} @@@---";
+        bootm;
+    fi
+fi'
+
+if usb start 0 ; then
+    setenv media usb
+    run tryboot
+fi
+
+if mmcinfo; then
+    setenv media mmc
+    run tryboot
+fi

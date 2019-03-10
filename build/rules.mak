@@ -49,6 +49,8 @@ DIRSTAMP = $(addsuffix .stamp.dir,$1)
 OUT = out/$(PLATFORM)/
 # The directory with platform sources
 PLATFORM.DIR = build/$(PLATFORM)/
+# Build date
+BDATE = $(shell date +"%Y-%m-%d")
 
 # Append to OUTDIRS all output directories
 OUTDIRS = $(OUT)

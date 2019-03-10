@@ -1361,6 +1361,8 @@
 
 	/delete-node/ backlight;
 
+	/delete-node/ lcd;
+
  	bl_extern {
 		/delete-property/ i2c_bus;
 
@@ -1378,7 +1380,6 @@
 	gpioleds {
 		/delete-node/ net_green;
 		/delete-node/ net_red;
-		/delete-node/ remote_led;
 		sys_led {
 			gpios=<&gpio_ao GPIOAO_11 GPIO_ACTIVE_HIGH>;
 		};
@@ -1412,6 +1413,9 @@
 };
 
 &custom_maps {
+	map_0 {
+		customcode = <0xbd01>;
+	};
 	map_1 {
 		cursor_down_scancode = <0x1a>;
 		cursor_left_scancode = <0x51>;

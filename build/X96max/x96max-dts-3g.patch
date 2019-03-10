@@ -1,22 +1,208 @@
 This patch adds the descriptor for the 7-segment LED display of X92.
 
---- g12a_x96max_4g.dts	2018-12-29 02:54:16.097173206 +0300
-+++ g12a_x96max_3g.dts	2018-12-31 18:26:48.752101325 +0300
-@@ -23,7 +23,7 @@
+--- g12a_s905x2_u211.dts	2018-09-21 07:30:57.000000000 +0300
++++ g12a_x96max_3g.dts	2019-01-04 02:45:53.565606908 +0300
+@@ -19,10 +19,11 @@
+ 
+ #include "mesong12a.dtsi"
+ #include "partition_mbox_normal.dtsi"
++#include "mesong12a_skt-panel.dtsi"
  
  / {
  	model = "Amlogic";
--	amlogic-dt-id = "g12a_s905x2_u211_rgmii_4g";
+-	amlogic-dt-id = "g12a_s905x2_u211";
 +	amlogic-dt-id = "g12a_s905x2_u211_rgmii_3g";
  	compatible = "amlogic, g12a";
  	interrupt-parent = <&gic>;
  	#address-cells = <2>;
-@@ -46,7 +46,7 @@
+@@ -45,7 +46,7 @@
  
  	memory@00000000 {
  		device_type = "memory";
--		linux,usable-memory = <0x0 0x100000 0x0 0xf5700000>;
+-		linux,usable-memory = <0x0 0x100000 0x0 0x7ff00000>;
 +		linux,usable-memory = <0x0 0x100000 0x0 0xb5700000>;
  	};
  
  	reserved-memory {
+@@ -738,7 +739,7 @@
+ 	status = "okay";
+ 	display_size_default = <1920 1080 1920 2160 32>;
+ 	mem_size = <0x00800000 0x1980000 0x100000 0x100000 0x800000>;
+-	logo_addr = "0x7f800000";
++	logo_addr = "0xdf800000";
+ 	mem_alloc = <0>;
+ 	pxp_mode = <0>; /** 0:normal mode 1:pxp mode */
+ };
+@@ -1132,14 +1133,14 @@
+ 	/** 0: normal, 1: otg+dwc3 host only, 2: otg+dwc3 device only*/
+ 	controller-type = <1>;
+ };
++
+ &ethmac {
+ 	status = "okay";
+-	pinctrl-names = "internal_eth_pins", "internal_gpio_pins";
+-	pinctrl-0 = <&internal_eth_pins>;
+-	pinctrl-1 = <&internal_gpio_pins>;
+-	mc_val = <0x4be04>;
++	pinctrl-names = "external_eth_pins";
++	pinctrl-0 = <&external_eth_pins>;
++	mc_val = <0x1621>;
+ 
+-	internal_phy=<1>;
++	internal_phy=<0>;
+ };
+ 
+ &uart_A {
+@@ -1330,3 +1331,152 @@
+ 	status = "okay";
+ };
+ 
++/ {
++	reserved-memory {
++ 		linux,meson-fb {
++			alloc-ranges = <0x0 0xbf800000 0x0 0x800000>;
++		};
++	};
++
++ 	lcd {
++		/delete-property/ interrupt-names;
++		/delete-property/ interrupts;
++		reg = <0x0 0xffd07000 0x0 0x400    /* dsi_host */
++			0x0 0xff644000 0x0 0x2000>; /* dsi_phy */
++		clocks = <&clkc CLKID_MIPI_DSI_HOST
++			&clkc CLKID_MIPI_DSI_PHY
++			&clkc CLKID_DSI_MEAS_COMP
++			&clkc CLKID_VCLK2_ENCL
++			&clkc CLKID_VCLK2_VENCL>;
++		clock-names = "dsi_host_gate",
++			"dsi_phy_gate",
++			"dsi_meas",
++			"encl_top_gate",
++			"encl_int_gate";
++	};
++
++ 	lcd_extern {
++		/delete-property/ i2c_bus;
++	};
++
++	/delete-node/ backlight;
++
++	/delete-node/ lcd;
++
++ 	bl_extern {
++		/delete-property/ i2c_bus;
++
++ 		extern_0 {
++			i2c_bus = "i2c_bus_c";
++		};
++	};
++
++	/delete-node/ dmc_monitor;
++
++	dvb {
++		status = "disabled";
++	};
++
++	gpioleds {
++		/delete-node/ net_green;
++		/delete-node/ net_red;
++		sys_led {
++			gpios=<&gpio_ao GPIOAO_11 GPIO_ACTIVE_HIGH>;
++		};
++	};
++
++	partitions {
++		vendor {
++			size = <0x0 0x46000000>;
++		};
++	};
++
++	sd2@ffe05000 {
++		status = "okay";
++		sdio {
++			f_max = <170000000>;
++		};
++	};
++
++	meson-vfd {
++		compatible = "amlogic,aml_vfd";
++		dev_name = "meson-vfd";
++		status = "okay";
++		gpios = <&gpio GPIOA_14 GPIO_ACTIVE_HIGH>,      /* DI/DO */
++			<&gpio GPIOA_15 GPIO_ACTIVE_HIGH>,      /* CLK */
++			<&gpio_ao GPIOAO_10 GPIO_ACTIVE_HIGH>;  /* STB */
++		/* dot LED names */
++		dot_names = "APPS", "SETUP", "USB", "CARD", ":", "HDMI", "CVBS";
++		/* dot LED <16_bit_word bit_number> in raw display buffer ('overlay') */
++		dot_bits = /bits/ 8 <0 3 1 3 2 3 3 3 4 3 5 3 6 3>;
++	};
++};
++
++&custom_maps {
++	map_0 {
++		customcode = <0xbd01>;
++	};
++	map_1 {
++		cursor_down_scancode = <0x1a>;
++		cursor_left_scancode = <0x51>;
++		cursor_ok_scancode = <0x13>;
++		cursor_right_scancode = <0x50>;
++		cursor_up_scancode = <0x16>;
++
++		fn_key_scancode = <0x0>;
++		size  = <44>;
++
++		keymap = <REMOTE_KEY(0x01, KEY_0)
++			REMOTE_KEY(0x4e, KEY_1)
++			REMOTE_KEY(0x0d, KEY_2)
++			REMOTE_KEY(0x0c, KEY_3)
++			REMOTE_KEY(0x4a, KEY_4)
++			REMOTE_KEY(0x09, KEY_5)
++			REMOTE_KEY(0x08, KEY_6)
++			REMOTE_KEY(0x46, KEY_7)
++			REMOTE_KEY(0x05, KEY_8)
++			REMOTE_KEY(0x04, KEY_9)
++			REMOTE_KEY(0x49, KEY_F5)
++			REMOTE_KEY(0x48, KEY_KPPLUS)
++			REMOTE_KEY(0x4d, KEY_KP4)
++			REMOTE_KEY(0x03, KEY_KP5)
++			REMOTE_KEY(0x43, KEY_KP6)
++			REMOTE_KEY(0x45, KEY_F6)
++			REMOTE_KEY(0x0f, KEY_F7)
++			REMOTE_KEY(0x44, KEY_F8)
++			REMOTE_KEY(0x12, KEY_F9)
++			REMOTE_KEY(0x4b, KEY_F10)
++			REMOTE_KEY(0x26, KEY_NUMLOCK)
++			REMOTE_KEY(0x16, KEY_UP)
++			REMOTE_KEY(0x1a, KEY_DOWN)
++			REMOTE_KEY(0x51, KEY_LEFT)
++			REMOTE_KEY(0x50, KEY_RIGHT)
++			REMOTE_KEY(0x13, KEY_RIGHTCTRL)
++			REMOTE_KEY(0x19, KEY_BACK)
++			REMOTE_KEY(0x4c, KEY_LEFTMETA)
++			REMOTE_KEY(0x40, KEY_POWER)
++			REMOTE_KEY(0x41, KEY_MUTE)
++			REMOTE_KEY(0x18, KEY_VOLUMEUP)
++			REMOTE_KEY(0x10, KEY_VOLUMEDOWN)
++			REMOTE_KEY(0x11, KEY_HOME)
++			REMOTE_KEY(0x0a, KEY_DELETE)
++			REMOTE_KEY(0x42, KEY_BACKSPACE)
++			REMOTE_KEY(0x47, KEY_EMAIL)
++			REMOTE_KEY(0x0e, KEY_SCROLLLOCK)
++			REMOTE_KEY(0x59, KEY_HANGEUL)
++			REMOTE_KEY(0x58, KEY_HANJA)
++			REMOTE_KEY(0x54, KEY_SCALE)
++			REMOTE_KEY(0x52, KEY_YEN)
++			REMOTE_KEY(0x5a, KEY_PAUSE)
++			REMOTE_KEY(0x55, KEY_KPCOMMA)
++			REMOTE_KEY(0x00, KEY_RIGHTALT)>;
++	};
++};
++
++&p_tsensor {
++	rtemp = <130000>;
++};
++
++&d_tsensor {
++	rtemp = <130000>;
++};

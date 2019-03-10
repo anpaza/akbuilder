@@ -1,7 +1,7 @@
 This patch adds the descriptor for the 7-segment LED display of X92.
 
 --- g12a_s905x2_u211.dts	2018-09-21 07:30:57.000000000 +0300
-+++ g12a_x96max_4g.dts	2018-12-29 02:54:16.097173206 +0300
++++ g12a_x96max_4g.dts	2019-01-04 02:38:55.509812092 +0300
 @@ -19,10 +19,11 @@
  
  #include "mesong12a.dtsi"
@@ -53,7 +53,7 @@ This patch adds the descriptor for the 7-segment LED display of X92.
  };
  
  &uart_A {
-@@ -1330,3 +1331,148 @@
+@@ -1330,3 +1331,152 @@
  	status = "okay";
  };
  
@@ -87,6 +87,8 @@ This patch adds the descriptor for the 7-segment LED display of X92.
 +
 +	/delete-node/ backlight;
 +
++	/delete-node/ lcd;
++
 + 	bl_extern {
 +		/delete-property/ i2c_bus;
 +
@@ -104,7 +106,6 @@ This patch adds the descriptor for the 7-segment LED display of X92.
 +	gpioleds {
 +		/delete-node/ net_green;
 +		/delete-node/ net_red;
-+		/delete-node/ remote_led;
 +		sys_led {
 +			gpios=<&gpio_ao GPIOAO_11 GPIO_ACTIVE_HIGH>;
 +		};
@@ -138,6 +139,9 @@ This patch adds the descriptor for the 7-segment LED display of X92.
 +};
 +
 +&custom_maps {
++	map_0 {
++		customcode = <0xbd01>;
++	};
 +	map_1 {
 +		cursor_down_scancode = <0x1a>;
 +		cursor_left_scancode = <0x51>;

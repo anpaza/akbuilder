@@ -3,11 +3,14 @@
 # Default device tree
 KERNEL.DTS ?= gxm_x92_2g.dts
 
+PLATFORM.BUILD.INITRAMFS = 1
+PLATFORM.BUILD.BOOTIMG = 1
+
 # We want the Mali and Wi-Fi drivers
 PLATFORM.BUILD.KD_MALI = 1
 PLATFORM.BUILD.KD_AP6XXX = 1
-PLATFORM.BUILD.INITRAMFS = 1
-PLATFORM.BUILD.BOOTIMG = 1
+# The path to driver to use for our platform
+KD_AP6XXX.DRVDIR ?= ap6xxx/bcmdhd.1.363.59.144.x.cn
 
 # We build the USB driver from the kernel tree
 PLATFORM.DWC3.KO = 1
@@ -52,7 +55,7 @@ $(INITRAMFS.OUT)tree/vfdd.ini: $(VFDD_DIR)config/vfdd-x92.ini $(INITRAMFS.OUT).s
 $(INITRAMFS.OUT)tree/afrd: $(AFRD_BIN) $(INITRAMFS.OUT).stamp.copy
 	$(call CP,$<,$@)
 
-$(INITRAMFS.OUT)tree/afrd.ini: $(AFRD_DIR)config/afrd-x92.ini $(INITRAMFS.OUT).stamp.copy
+$(INITRAMFS.OUT)tree/afrd.ini: $(AFRD_DIR)config/afrd-android7-.ini $(INITRAMFS.OUT).stamp.copy
 	$(call CP,$<,$@)
 
 .PHONY: deploy
@@ -66,6 +69,10 @@ define DEPLOY
 	for x in doc/aml-$(PLATFORM.KERNEL_VER)/{README-boot*.m4,CHANGES*.m4} ; do \
 		m4 -DPLATFORM="$(PLATFORM)" $$x > $(OUT)deploy/$1/`basename $$x .m4`.txt ; \
 	done
+	tools/upd-maker/upd-maker -n "Custom kernel for X92 by zap" -d q201 \
+		-fs $(PLATFORM.DIR)update-kernel.sh \
+		-o $(OUT)deploy/UPDATE_$1_kernel$(KERNEL.SUFFIX)-$(BDATE).zip \
+		$(OUT)deploy/$1/kernel.img $(OUT)deploy/$1/dtb.img
 endef
 
 deploy:

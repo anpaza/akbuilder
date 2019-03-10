@@ -57,10 +57,10 @@ include build/platform-amlogic.mak
 $(KERNEL.DTS.DIR)g12a_x96max_4g.dts: $(PLATFORM.DIR)x96max-dts-4g.patch $(KERNEL.DTS.DIR)g12a_s905x2_u211.dts
 	$(call APPLY.PATCH,$<,,-o $@ $(word 2,$^))
 
-$(KERNEL.DTS.DIR)g12a_x96max_3g.dts: $(PLATFORM.DIR)x96max-dts-3g.patch $(KERNEL.DTS.DIR)g12a_x96max_4g.dts
+$(KERNEL.DTS.DIR)g12a_x96max_3g.dts: $(PLATFORM.DIR)x96max-dts-3g.patch $(KERNEL.DTS.DIR)g12a_s905x2_u211.dts
 	$(call APPLY.PATCH,$<,,-o $@ $(word 2,$^))
 
-$(KERNEL.DTS.DIR)g12a_x96max_2g.dts: $(PLATFORM.DIR)x96max-dts-2g.patch $(KERNEL.DTS.DIR)g12a_x96max_4g.dts
+$(KERNEL.DTS.DIR)g12a_x96max_2g.dts: $(PLATFORM.DIR)x96max-dts-2g.patch $(KERNEL.DTS.DIR)g12a_s905x2_u211.dts
 	$(call APPLY.PATCH,$<,,-o $@ $(word 2,$^))
 
 # How vfdd files gets copied to initramfs build dir
@@ -91,6 +91,6 @@ define DEPLOY
 endef
 
 deploy:
-#	$(call DEPLOY,2G,g12a_x96max_2g.dts)
+	$(call DEPLOY,2G,g12a_x96max_2g.dts)
 	$(call DEPLOY,3G,g12a_x96max_3g.dts)
 	$(call DEPLOY,4G,g12a_x96max_4g.dts)

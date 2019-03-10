@@ -9,7 +9,7 @@ service modules_install /modules_install.sh
     disabled
     oneshot
     group shell root
-    seclabel u:r:preinstall:s0
+    seclabel u:r:system_server:s0
 
 service vfdd /vfdd /etc/vfdd.ini /vfdd.ini
     class main

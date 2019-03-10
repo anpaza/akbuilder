@@ -1,0 +1,18 @@
+This patch adds the /sys/module/gxbb_pm/parameters/wifi_type parameter
+which is used to differentiate between platforms with the BCM4335
+or the BCM6335 chips.
+
+diff -ur original/drivers/amlogic/pm/gxbb_pm.c modified/drivers/amlogic/pm/gxbb_pm.c
+--- original/drivers/amlogic/pm/gxbb_pm.c	2017-05-15 16:45:51.000000000 +0300
++++ modified/drivers/amlogic/pm/gxbb_pm.c	2017-05-30 01:21:24.000000000 +0300
+@@ -286,6 +286,10 @@
+ 	return 0;
+ }
+ 
++static int wifi_type = 1;
++module_param(wifi_type, int, 0664);
++MODULE_PARM_DESC(wifi_type, "1 for BCM4335 0 for BCM6335\n");
++
+ #ifdef CONFIG_OF
+ static const struct of_device_id amlogic_pm_dt_match[] = {
+ 	{.compatible = "amlogic, pm",

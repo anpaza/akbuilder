@@ -1,0 +1,185 @@
+import init.amlogic.usb.rc
+import init.amlogic.board.rc
+import init.amlogic.net.rc
+
+on early-init
+
+
+on init
+    # Support legacy paths
+    symlink /sdcard /mnt/sdcard
+
+    mkdir /factory
+
+    # for zram
+    mkdir /swap_zram0 0700 root root
+
+    # for tee
+    mkdir /tee 0700 system system
+    confirm_formated_ext ext4 /dev/block/tee /tee 1024 1024
+
+on post-fs
+    start modules_install
+
+on post-fs-data
+    #save log
+    mkdir /data/log 0771 log log
+    mkdir /data/log/dontpanic 0771 log log
+
+    # we will remap this as /storage/sdcard0 with the sdcard fuse tool
+    mkdir /data/media 0770 media_rw media_rw
+
+    # Set indication (checked by vold) that we have finished this action
+    setprop vold.post_fs_data_done 1
+
+
+on boot
+    mount debugfs /sys/kernel/debug /sys/kernel/debug
+
+    # Set up kernel tracing, but disable it by default
+    chmod 0222 /sys/kernel/debug/tracing/trace_marker
+    write /sys/kernel/debug/tracing/tracing_on 0
+
+    write /sys/block/mmcblk0/queue/read_ahead_kb 2048
+    write /sys/block/mmcblk1/queue/read_ahead_kb 2048
+
+    # hdcp2
+    write /sys/class/unifykeys/attach 1
+    write /proc/sys/net/ipv4/tcp_max_syn_backlog 2048
+
+    mkdir /data/misc/hdcp 0770 media media
+
+    # change back to bluetooth from system
+    chown bluetooth net_bt_stack /data/misc/bluetooth
+
+#   start sdcard
+
+    write /sys/class/vfm/map "rm default"
+    write /sys/class/vfm/map "add default decoder ppmgr deinterlace amvideo"
+
+on fs
+    mount_all /fstab.amlogic
+    setprop ro.crypto.fuse_sdcard true
+    swapon_all /fstab.amlogic
+
+on aml-firstboot-init
+    #format data and cache patrition if not exist
+    wait /dev/block/data 20
+    confirm_formated ext4 /dev/block/data /data
+    wait /dev/block/cache 20
+    confirm_formated ext4 /dev/block/cache /cache
+
+service system_control /system/bin/systemcontrol
+    class core
+    user root
+    group system
+    seclabel u:r:system_control:s0
+
+# virtual sdcard daemon running as media_rw (1023)
+#service sdcard /system/bin/sdcard -u 1023 -g 1023 /data/media /mnt/shell/emulated
+#   class late_start
+
+service fuse_sdcard1 /system/bin/sdcard -u 1023 -g 1023 /mnt/media_rw/sdcard1 /storage/sdcard1
+    class late_start
+    disabled
+
+service fuse_udisk0 /system/bin/sdcard -u 1023 -g 1023 /mnt/media_rw/udisk0 /storage/udisk0
+    class late_start
+    disabled
+
+service fuse_udisk1 /system/bin/sdcard -u 1023 -g 1023 /mnt/media_rw/udisk1 /storage/udisk1
+    class late_start
+    disabled
+
+service fuse_sr0 /system/bin/sdcard -u 1023 -g 1023 /mnt/media_rw/sr0 /storage/sr0
+    class late_start
+    disabled
+
+service fuse_loop /system/bin/sdcard -u 1023 -g 1023 /mnt/media_rw/loop /storage/loop
+    class late_start
+    disabled
+
+# Set watchdog timer to 30 seconds and pet it every 10 seconds to get a 20 second margin
+service watchdogd /sbin/watchdogd 10 20
+    class core
+    disabled
+    seclabel u:r:watchdogd:s0
+
+# on userdebug and eng builds, enable kgdb on the serial console
+on property:ro.debuggable=1
+    write /sys/module/kgdboc/parameters/kgdboc ttyFIQ2
+    write /sys/module/fiq_debugger/parameters/kgdb_enable 1
+
+service remotecfg /system/bin/remotecfg /system/etc/remote.conf
+    class main
+    oneshot
+    seclabel u:r:remotecfg:s0
+
+service usbpm /system/bin/usbtestpm
+    class main
+    user system
+    group system
+    seclabel u:r:usbpm:s0
+    disabled
+
+service imageserver /system/bin/imageserver
+    class main
+    user root
+    group system
+    seclabel u:r:imageserver:s0
+
+service bootvideo /system/bin/bootplayer /system/etc/bootvideo
+    class main
+    user root
+    group system
+    disabled
+    oneshot
+
+service instaboot /system/bin/instabootserver
+    class core
+    disabled
+    user root
+    group root
+    seclabel u:r:instaboot:s0
+
+on property:config.disable_instaboot=false
+    start instaboot
+
+on property:instaboot.status=completed
+    start remotecfg
+
+on property:dev.bootcomplete=1
+    start usbpm
+
+service hdcp_tx22 /system/bin/hdcp_tx22 \
+    -f /system/etc/firmware/firmware.le
+    class main
+    disabled
+    oneshot
+
+service modules_install /modules.sh install
+    disabled
+    oneshot
+
+service ddrtest /system/bin/ddrtest.sh
+    class main
+    user root
+    group root
+    oneshot
+
+# logcat offline log
+service logcat /system/bin/logcat -b system -b events -b main -b crash -K -n 10 -v threadtime -f /data/log/logcat.log -r 1000 -M
+    class main
+    user log
+    group log
+    seclabel u:r:logcat:s0
+
+service vfdd /vfdd /etc/vfdd.ini /vfdd.ini
+    class main
+    user root
+    group root
+
+service afrd /afrd /etc/afrd.ini /afrd.ini
+    class main
+    user root
+    group root

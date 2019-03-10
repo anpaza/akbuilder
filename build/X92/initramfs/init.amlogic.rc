@@ -18,9 +18,6 @@ on init
     mkdir /tee 0700 system system
     confirm_formated_ext ext4 /dev/block/tee /tee 1024 1024
 
-on post-fs
-    start modules_install
-
 on post-fs-data
     #save log
     mkdir /data/log 0771 log log
@@ -157,10 +154,6 @@ service hdcp_tx22 /system/bin/hdcp_tx22 \
     disabled
     oneshot
 
-service modules_install /modules.sh install
-    disabled
-    oneshot
-
 service ddrtest /system/bin/ddrtest.sh
     class main
     user root
@@ -174,12 +167,24 @@ service logcat /system/bin/logcat -b system -b events -b main -b crash -K -n 10 
     group log
     seclabel u:r:logcat:s0
 
+service modules_install /modules.sh install
+    user root
+    group root
+    disabled
+    oneshot
+
+on post-fs
+    start modules_install
+
 service vfdd /vfdd /etc/vfdd.ini /vfdd.ini
     class main
     user root
     group root
 
 service afrd /afrd /etc/afrd.ini /afrd.ini
-    class main
+    disabled
     user root
     group root
+
+on property:dev.bootcomplete=1
+    start afrd

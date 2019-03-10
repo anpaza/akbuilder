@@ -1,0 +1,141 @@
+#!/bin/bash
+#
+# Утилита для создания пакетов обновления прошивки через Recovery
+#
+# Запуск: upd-maker -n <название> -d <ro.product.device> -o <update.zip> [образы разделов...]
+#
+# <название> задаёт название, которое будет отображаться во время
+# обновления прошивки (название пакета обновления).
+#
+# <ro.product.device> задаёт имя аппаратной платформы, для которой
+# предназначен этот пакет. На текущий момент проверка названия платформы
+# отключена, но это может измениться.
+#
+# Название файла (без расширения) с образом раздела должно быть
+# таким же, как название устройства /dev/block/*. Единственное исключение -
+# раздел _aml_dtb, который записывается в /dev/dtb.
+#
+# Образ раздела должен быть ровно в том виде, в котором он записывается
+# в раздел! В частности, sparse ext4 образы должны быть быть
+# предварительно распакованы (например, утилитой simg2img)
+#
+
+NAME=
+DEV=
+UPD=
+FILES=
+CMD_START=
+CMD_END=
+SCRIPT=
+
+while test -n "$1" ; do
+	case $1 in
+		 -n) NAME="$2"; shift ;;
+		 -d) DEV="$2"; shift ;;
+		 -o) UPD=$(readlink -m "$2"); shift ;;
+		-cs) CMD_START="$CMD_START\n$2"; shift ;;
+		-ce) CMD_END="$CMD_END\n$2"; shift ;;
+		-fs) CMD_START=`cat $2`; shift ;;
+		-fe) CMD_END=`cat $2`; shift ;;
+		 -s) SCRIPT="$2"; shift ;;
+		 -*) echo "Неизвестная опция $1"; exit 1 ;;
+		  *) break ;;
+	esac
+	shift
+done
+
+FILES=$*
+if test -z "$UPD" ; then
+	echo "Запуск: upd-maker [опции] -o update.zip [образы разделов...]"
+	echo ""
+	echo "-n <название>   Название пакета обновления (отображается при установке)"
+	echo "-d <устройство> Название целевой платформы (getprop ro.product.device)"
+	echo "-o <update.zip> Выходной файл"
+	echo "-cs <команда>   Добавить команды до прошивки"
+	echo "-ce <команда>   Добавить команды после прошивки"
+	echo "-fs <файл>      Вставить команды из файла до прошивки"
+	echo "-fe <файл>      Вставить команды из файла после прошивки"
+	exit 1
+fi
+
+DIR=$(dirname $(readlink -f $0))
+UPD_DIR="$(dirname "$UPD")/upd-maker"
+UPD_SCR="$UPD_DIR/META-INF/com/google/android/updater-script"
+
+set -e
+
+echo "Создаём сценарий обновления ..."
+rm -rf "$UPD_DIR"
+mkdir -p "$UPD_DIR"
+unzip -q "$DIR/upd-maker-template.zip" -d "$UPD_DIR"
+mkdir -p "$UPD_DIR/META-INF/com/android"
+
+if test -n "$DEV" ; then
+	echo "pre-device=$DEV" >> "$UPD_DIR/META-INF/com/android/metadata"
+
+	cat >> "$UPD_SCR" <<EOF
+product=\`cat /*.prop | sed -ne '/ro.product.device *=/{' -e 's/.*=//' -e p -e '}'\`
+if test "\$product" != "$DEV" ; then
+	ui_print "Package is for product $DEV, not for \$product"
+	exit 1
+fi
+EOF
+fi
+
+test -n "$NAME" && echo "ui_print \"Installing -=<( $NAME )>=-\"" >> "$UPD_SCR"
+test -n "$CMD_START" && echo -e "$CMD_START" >> "$UPD_SCR"
+
+if test -n "$SCRIPT" ; then
+	sed -e '1{' -e '/^#!/d' -e '}' "$SCRIPT" >> "$UPD_SCR"
+
+	for x in $FILES ; do
+		if ! test -e "$x" ; then
+			echo "File $x does not exist" >&2
+			exit 1
+		fi
+		file="$(basename "$x")"
+		test "$UPD_DIR/$file" -ot "$x" && cp -a "$x" "$UPD_DIR/$file"
+	done
+else
+	for x in $FILES ; do
+		if ! test -e "$x" ; then
+			echo "File $x does not exist" >&2
+			exit 1
+		fi
+		file="$(basename "$x")"
+		part="$(echo "$file" | sed -e 's/\..*//')"
+		test "$UPD_DIR/$file" -ot "$x" && cp -a "$x" "$UPD_DIR/$file"
+		case $part in
+			kernel)		part=boot ;;
+			DDR)		part=bootloader ;;
+		esac
+		dev="/dev/block/$part"
+		desc="partition '$part'"
+		case $part in
+			bootloader)	desc=Bootloader ;;
+			boot)		desc=Kernel ;;
+			_aml_dtb|dtb)	dev="/dev/dtb"; desc="Device Tree" ;;
+		esac
+		cat >> "$UPD_SCR" <<EOF
+ui_print " - Flashing $desc"
+if ! package_extract_file $file $dev ; then
+	ui_print "Failed to extract $file to $dev"
+	exit 1
+fi
+EOF
+	done
+fi
+
+test -n "$CMD_END" && echo -e "$CMD_END" >> "$UPD_SCR"
+test -z "$SCRIPT" && echo "ui_print \"Success!\"" >> "$UPD_SCR"
+
+echo "Создание промежуточного архива ..."
+rm -f "${UPD}~"
+(cd "$UPD_DIR"; zip -qr "${UPD}~" .)
+rm -rf "$UPD_DIR"
+
+echo "Подписываем архив тестовым ключом ..."
+java -jar "$DIR/zipsigner-3.0.jar" "${UPD}~" "${UPD}"
+rm -f "${UPD}~"
+
+echo "Готово"
