@@ -40,3 +40,29 @@ You can determine which kernel (stock or modified) is loaded by:
 * the output of 'uname -r' command, for example from a PC:
     > adb connect 192.168.1.253 # the IP address of your PLATFORM
     > adb shell uname -r
+
+
+How to flash it?
+----------------
+
+It is recommended first to check if the kernel works for you by
+booting it directly from USB/SD sticard. If you don't want to
+keep the sticard in slot on every boot, you can flash the kernel
+into EMMC memory.
+
+For this, first copy the respective UPDATE-*.zip to an USB/SD
+sticard. DO NOT EXTRACT ANYTHING from the archive, just copy it!
+
+Now, don't insert the sticard yet, boot into recovery (both system
+recovery or TWRP are fine). Press the button at the bottom of
+the AV jack with a match and pull out/insert back the power cord.
+
+When recovery program loads, insert the sticard into the device.
+Choose "Install" or "Install update". Select the UPDATE*.zip archive
+you just copied to the sticard. During install, a backup copy of
+your current kernel will be created.
+
+If something went wrong, you can boot into recovery again and
+run the installer again. It will detect the backup copy and will
+uninstall instead of installing. After a successful restore,
+the backup copy will be removed.
