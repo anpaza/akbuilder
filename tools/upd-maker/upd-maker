@@ -74,7 +74,7 @@ if test -n "$DEV" ; then
 	echo "pre-device=$DEV" >> "$UPD_DIR/META-INF/com/android/metadata"
 
 	cat >> "$UPD_SCR" <<EOF
-product=\`cat /*.prop | sed -ne '/ro.product.device *=/{' -e 's/.*=//' -e p -e '}'\`
+product=\`getprop ro.product.device\`
 if test "\$product" != "$DEV" ; then
 	ui_print "Package is for product $DEV, not for \$product"
 	exit 1

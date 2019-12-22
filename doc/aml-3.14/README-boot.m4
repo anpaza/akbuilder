@@ -58,9 +58,9 @@ recovery or TWRP are fine). Press the button at the bottom of
 the AV jack with a match and pull out/insert back the power cord.
 
 When recovery program loads, insert the sticard into the device.
-Choose "Install" or "Install update". Select the UPDATE*.zip archive
-you just copied to the sticard. During install, a backup copy of
-your current kernel will be created.
+Choose "Install" or "Apply update from EXT". Select the UPDATE*.zip
+archive you just copied to the sticard. During install, a backup
+copy of your current kernel will be created.
 
 If something went wrong, you can boot into recovery again and
 run the installer again. It will detect the backup copy and will

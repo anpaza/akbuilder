@@ -14,8 +14,7 @@ restore_failed() {
 	exit 1
 }
 
-MNT_DATA=`grep -q '^/dev/block/data' /proc/mounts`
-test -z "$MNT_DATA" || mount /dev/block/data /data
+mnt data
 
 if test -f $BACKUP/.ok ; then
 	ui_print "Restoring kernel from backup in $BACKUP"
@@ -32,7 +31,5 @@ dd if=/dev/block/boot of=$BACKUP/kernel.img || backup_failed "kernel"
 dd if=/dev/dtb of=$BACKUP/dtb.img || backup_failed "DTB"
 touch $BACKUP/.ok
 ui_print "Backup done"
-
-test -z "$MNT_DATA" || umount /data
 
 # --- --- --- --- --- --- --- --- --- --- --- --- --- --- #
